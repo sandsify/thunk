@@ -3,7 +3,7 @@ services:
     build: .
     privileged: true
     ports:
-      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:${PORT:-8123}:8123"   # PORT=... for another port
     volumes:
       - builders:/opt/play-haskell/play-haskell-worker/bwrap-files/builders
       - builderprojs:/opt/play-haskell/play-haskell-worker/bwrap-files/builderprojs

@@ -17,7 +17,7 @@
 //   3. for every exercise with a solution, Check and Run with the solution.
 // Record again whenever the page's code changes: a program that is not
 // in the recording needs a server.
-// Needs Google Chrome, pandoc, and Thunk.
+// Needs Google Chrome (or Chromium; CHROME=path), pandoc, and Thunk.
 
 import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
@@ -26,6 +26,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, extname, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scenarioFromMarkdown } from "../tests/expect.mjs";
+import { chrome as chromePath } from "../tests/chrome.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const page = resolve(process.argv[2] || "");
@@ -52,7 +53,7 @@ await new Promise((r) => server.on("listening", r));
 const url = `http://127.0.0.1:${server.address().port}/${name}.html`;
 
 const port = 9400 + Math.floor(Math.random() * 400);
-const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", [
+const chrome = spawn(chromePath, [
   "--headless=new", `--remote-debugging-port=${port}`,
   "--user-data-dir=" + mkdtempSync(join(tmpdir(), "cdp-")), "about:blank",
 ], { stdio: "ignore" });

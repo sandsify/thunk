@@ -5,8 +5,8 @@
 //
 // The page's own code must give the recorded results, changed code the
 // note that it needs a server, and the page must send nothing to any
-// server. Needs Google Chrome and pandoc (no Thunk). Exits with 1 if a
-// check failed.
+// server. Needs Google Chrome (or Chromium; CHROME=path) and pandoc,
+// but no Thunk. Exits with 1 if a check failed.
 
 import { spawn, execFileSync } from "node:child_process";
 import { createServer } from "node:http";
@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scenarioFromMarkdown, normalise } from "./expect.mjs";
+import { chrome as chromePath } from "./chrome.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const work = mkdtempSync(join(tmpdir(), "thunk-replay-test-")), site = join(work, "site");
@@ -36,7 +37,7 @@ await new Promise((r) => server.on("listening", r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 
 const port = 9800 + Math.floor(Math.random() * 150);
-const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", [
+const chrome = spawn(chromePath, [
   "--headless=new", `--remote-debugging-port=${port}`,
   "--user-data-dir=" + mkdtempSync(join(tmpdir(), "cdp-")), "about:blank",
 ], { stdio: "ignore" });

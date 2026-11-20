@@ -38,7 +38,7 @@ from the internet (Let's Encrypt checks port 80).
 ## Check
 
 ```sh
-curl -s -H 'Origin: https://www.cse.chalmers.se' -H 'Content-Type: application/json' \
+curl -s -H 'Origin: https://www.example.org' -H 'Content-Type: application/json' \
   -d '{"code":">>> 1 + 1\n","version":"9.8.4","opt":"O0","output":"ghci"}' https://SITE/submit
 # {"ec":0, ... "sout":"2\n\u001e\n" ...}
 curl -s -o /dev/null -w '%{http_code}\n' https://SITE/          # 404

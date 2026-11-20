@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { chrome as chromePath } from "../tests/chrome.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const out = process.argv[2] || join(root, "docs/demo.gif");
@@ -44,7 +45,7 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.on("listening", r));
 
 const port = 9800 + Math.floor(Math.random() * 100);
-const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", [
+const chrome = spawn(chromePath, [
   "--headless=new", `--remote-debugging-port=${port}`, "--hide-scrollbars",
   "--user-data-dir=" + mkdtempSync(join(tmpdir(), "cdp-")), "about:blank",
 ], { stdio: "ignore" });

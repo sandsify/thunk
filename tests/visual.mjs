@@ -9,7 +9,7 @@
 // against a pattern, and save a screenshot of the block. At the end each
 // page is also saved whole, in light and dark, and at phone width.
 // Finally, on every page, each exercise's solution must pass its tests.
-// Needs Google Chrome, pandoc, and Thunk on localhost:8123.
+// Needs Google Chrome (or Chromium; CHROME=path), pandoc, and Thunk on localhost:8123.
 // Exits with 1 if a check failed.
 
 import { spawn, execFileSync } from "node:child_process";
@@ -20,6 +20,7 @@ import { join, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scenarios } from "./scenarios.mjs";
 import { scenarioFromMarkdown, normalise } from "./expect.mjs";
+import { chrome as chromePath } from "./chrome.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outdir = process.argv[2] || join(root, "_shots");
@@ -72,7 +73,7 @@ await new Promise((r) => server.on("listening", r));
 const base = `http://127.0.0.1:${server.address().port}/`;
 
 const port = 9300 + Math.floor(Math.random() * 500);
-const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", [
+const chrome = spawn(chromePath, [
   "--headless=new", `--remote-debugging-port=${port}`, "--window-size=900,1200",
   "--user-data-dir=" + mkdtempSync(join(tmpdir(), "cdp-")), "about:blank",
 ], { stdio: "ignore" });

@@ -57,7 +57,8 @@ The reader gets an editor with Run and Check. The full format is in
 
 ## Running locally
 
-Needs Docker, pandoc, and (for the tests) Node and Google Chrome.
+Needs Docker, pandoc, and (for the tests) Node and Google Chrome or
+Chromium (`CHROME=/path/to/chrome` if it is not found).
 
 ```bash
 git submodule update --init
@@ -93,4 +94,6 @@ says it needs a server); see section 9 of
 
 ## Licence
 
-MIT (to be confirmed). play-haskell is MIT-licensed, by Tom Smeding.
+MIT (see [LICENSE](LICENSE)). The server builds on
+[play-haskell](https://github.com/tomsmeding/play-haskell) by Tom Smeding,
+also MIT-licensed.
