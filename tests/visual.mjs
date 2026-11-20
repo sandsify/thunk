@@ -9,7 +9,7 @@
 // against a pattern, and save a screenshot of the block. At the end each
 // page is also saved whole, in light and dark, and at phone width.
 // Finally, on every page, each exercise's solution must pass its tests.
-// Needs Google Chrome (or Chromium; CHROME=path), pandoc, and Thunk on localhost:8123.
+// Needs Google Chrome (or Chromium; CHROME=path), pandoc, and Thunk on localhost:8123 (or THUNK_URL).
 // Exits with 1 if a check failed.
 
 import { spawn, execFileSync } from "node:child_process";
@@ -54,7 +54,7 @@ const hintDirs = (process.env.HINT_DIRS || "demo").split(/\s+/);
 const isPage = (f) => f.endsWith(".md") && !/^[A-Z][A-Z_-]*\.md$/.test(f);
 for (const { dir, name, sub } of pageDirs)
   for (const f of readdirSync(dir).filter(isPage))
-    execFileSync(join(root, "widget/build.sh"), [join(dir, f), join(site, sub)], {
+    execFileSync(join(root, "widget/build.sh"), [join(dir, f), join(site, sub), process.env.THUNK_URL || ""], {
       stdio: "ignore",
       env: { ...process.env, HINT_URL: hintDirs.includes(name) ? `http://127.0.0.1:${hintPort}` : "",
         EVENTS_URL: `http://127.0.0.1:${hintPort}` },

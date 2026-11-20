@@ -3,7 +3,7 @@
 //
 //   GEMINI_API_KEY=... node tools/record-demo.mjs [OUT.gif]
 //
-// Needs Thunk on localhost:8123, Google Chrome, pandoc and ffmpeg. Without
+// Needs Thunk on localhost:8123 (or THUNK_URL), Google Chrome, pandoc and ffmpeg. Without
 // GEMINI_API_KEY the hint comes from the mock model (marked as such).
 
 import { spawn, execFileSync } from "node:child_process";
@@ -28,7 +28,7 @@ const hints = spawn("python3", ["-I", join(root, "hints/server.py")], {
   stdio: "ignore",
 });
 writeFileSync(join(work, "meta.yaml"), "theme: light\n");
-execFileSync(join(root, "widget/build.sh"), [join(root, "demo/demo.md"), site], {
+execFileSync(join(root, "widget/build.sh"), [join(root, "demo/demo.md"), site, process.env.THUNK_URL || ""], {
   stdio: "ignore",
   env: { ...process.env, HINT_URL: `http://127.0.0.1:${hintPort}`, THUNK_METADATA: join(work, "meta.yaml") },
 });
