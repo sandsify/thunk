@@ -1,13 +1,13 @@
 # Design notes before a public release
 
-Proposed changes to the page format and the look, from a review on
-2026-11-20. The format is what authors write by hand, and renaming
+Changes to the page format and the look, from a review on 2026-11-20,
+all agreed and made the same day. The format is what authors write by hand, and renaming
 later breaks their pages, so these should be settled before release.
-The old names stay as aliases until fp-notes has converted its pages
-(after January 2027), and the conversion must leave the built pages
-identical.
+The old names stay as aliases (widget/names.lua), and
+tools/convert-names.py converts a page; on the 11 fp-notes lectures and
+the demo pages, every converted page builds to the same HTML.
 
-## Authoring format (docs/WRITING.md)
+## Authoring format (docs/WRITING.md) (done, 2026-11-20)
 
 1. **Exercise boxes**: today any `##`/`###` heading starting with the
    word "Exercise" makes a box. Replace with an explicit
@@ -30,7 +30,7 @@ identical.
    every `>>>` line of its `.check` block prints `+++ OK`. Document it,
    or allow other test results (a `Bool`, an HUnit-style count).
 
-## Look (widget/notes.css)
+## Look (done, 2026-11-20: widget/thunk.css and widget/page.css)
 
 8. **Split the stylesheet**: `thunk.css` styles only the blocks (under
    `.hs-block`) and the exercise and hint boxes; an optional `page.css`
@@ -65,7 +65,7 @@ identical.
     reader-run Haskell in any page, without Jupyter, with exercises and
     tests.
 
-## Smaller
+## Smaller (done, 2026-11-20)
 
 - The `localStorage` keys start with `fp-notes:`. Make the prefix a
   setting (default `thunk:`); fp-notes keeps `fp-notes:` so readers do

@@ -11,7 +11,7 @@ definitions. You do not need a `main`.
 Here is a recursive function that sums a list. Try changing the inputs,
 or add your own `>>>` lines. `>>> :t` shows the type of an expression.
 
-```{.haskell .run}
+```haskell {.run}
 total :: [Integer] -> Integer
 total []       = 0
 total (x : xs) = x + total xs
@@ -24,6 +24,8 @@ total (x : xs) = x + total xs
 What happens if you call it with a list of `Bool`s? Add the line
 `>>> total [True, False]` and run it again.
 
+::: exercise
+
 ## Exercise
 
 Define `count` so that `count x xs` is the number of times `x` occurs in
@@ -32,14 +34,14 @@ Define `count` so that `count x xs` is the number of times `x` occurs in
 Use **Run** to try your definition, and **Check** to test it with
 QuickCheck.
 
-```{.haskell .exercise}
+```haskell {.exercise}
 count :: Eq a => a -> [a] -> Int
 count x xs = undefined
 
 >>> count 'a' "banana"
 ```
 
-```{.haskell .check}
+```haskell {.check}
 import Test.QuickCheck
 
 prop_count :: Int -> [Int] -> Bool
@@ -48,7 +50,7 @@ prop_count x xs = count x xs == length (filter (== x) xs)
 >>> quickCheck prop_count
 ```
 
-```{.haskell .solution}
+```haskell {.solution}
 count :: Eq a => a -> [a] -> Int
 count x xs = length (filter (== x) xs)
 ```
@@ -58,3 +60,4 @@ A static code block, for comparison (not runnable):
 ```haskell
 count x xs = length [y | y <- xs, y == x]
 ```
+:::

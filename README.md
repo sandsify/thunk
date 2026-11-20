@@ -8,7 +8,7 @@ QuickCheck, hints, and optional AI help. The code runs on a server
 Written for the Haskell course TDA452/DIT143 at Chalmers, where it
 serves interactive versions of the lectures.
 
-*Work in progress: the page format may still change; see
+*Work in progress, not yet released. The design decisions are in
 [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md).*
 
 ## Writing pages
@@ -31,8 +31,10 @@ The reader gets an editor with Run and Check. The full format is in
 
 ## Parts
 
-- `widget/`: the pandoc filter, page template, `notes.js` and
-  `notes.css`. `widget/build.sh page.md out/` builds a page;
+- `widget/`: the pandoc filters (`names.lua`, `filter.lua`), page
+  template, `notes.js`, and the stylesheets `thunk.css` (the blocks) and
+  `page.css` (a standalone page). `widget/build.sh page.md out/` builds a
+  page;
   `widget/build-canvas.sh` builds one small page per block, for an LMS
   that accepts iframes (such as Canvas).
 - `server/`: Thunk, the server that runs the code: play-haskell
@@ -42,7 +44,10 @@ The reader gets an editor with Run and Check. The full format is in
 - `deploy/`: Thunk, the hint service and Caddy (https, origin check,
   rate limit) for a public server.
 - `demo/`, `tests/`: demo pages, and a browser test that runs every
-  page's examples and checks every exercise's solution.
+  page's examples and checks every exercise's solution
+  (`PAGE_DIRS="my/pages" node tests/visual.mjs` for your own pages).
+- `tools/convert-names.py`: brings pages written with older names up to
+  date.
 
 ## Running locally
 

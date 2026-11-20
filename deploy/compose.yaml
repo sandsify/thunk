@@ -1,7 +1,9 @@
 # Thunk (runs the readers' code), the hint service, and Caddy in front
 # (https, Origin check, rate limit). See README.md.
 #   cp env.example .env; edit .env; docker compose up -d --build
-name: fp-notes
+# The project and volume names: set PROJECT_NAME and VOLUME_PREFIX in .env
+# to keep an existing installation's volumes (certificates, logs, builds).
+name: ${PROJECT_NAME:-thunk}
 
 services:
   thunk:
@@ -49,11 +51,11 @@ services:
 
 volumes:
   builders:
-    name: ${VOLUME_PREFIX:-fp-notes}_builders
+    name: ${VOLUME_PREFIX:-thunk}_builders
   builderprojs:
-    name: ${VOLUME_PREFIX:-fp-notes}_builderprojs
+    name: ${VOLUME_PREFIX:-thunk}_builderprojs
   state:
-    name: ${VOLUME_PREFIX:-fp-notes}_state
+    name: ${VOLUME_PREFIX:-thunk}_state
   hintlog:
   caddy-data:
   caddy-config:

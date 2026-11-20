@@ -11,7 +11,7 @@
 {$SITE} {
 	encode gzip
 
-	# Only the course pages may use the service: browsers send Origin, so
+	# Only the pages (PAGES_ORIGIN) may use the service: browsers send Origin, so
 	# this stops other web pages (not scripts). Preflights go through, and
 	# the services answer them.
 	@foreign {
@@ -20,7 +20,7 @@
 	}
 
 	handle /submit {
-		respond @foreign "Only for the course pages." 403
+		respond @foreign "Only for the pages that use this service." 403
 		# Per IP address. Generous, because a campus network may put many
 		# readers behind one address; Thunk's queue protects its capacity.
 		rate_limit {
@@ -33,11 +33,11 @@
 		reverse_proxy thunk:8123
 	}
 	handle /hint {
-		respond @foreign "Only for the course pages." 403
+		respond @foreign "Only for the pages that use this service." 403
 		reverse_proxy hints:8124
 	}
 	handle /event {
-		respond @foreign "Only for the course pages." 403
+		respond @foreign "Only for the pages that use this service." 403
 		reverse_proxy hints:8124
 	}
 	handle {

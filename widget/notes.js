@@ -13,10 +13,11 @@
 //                set, each button press is counted there (see track)
 //   hs-notebook  "true": each block also gets the definitions of the
 //                blocks before it on the page
-//   hs-layout    "split" (the default): definitions on top, GHCi input in
-//                a green panel below, with each result under its input;
-//                "classic": one editor with ">>>" lines and a transcript.
-//                "?layout=classic" (or "split") in the address overrides it.
+//   hs-storage   the prefix of the keys under which the browser keeps a
+//                reader's edits (default "thunk")
+//
+// Each block: definitions on top, GHCi input in a green panel below, with
+// each result under its input.
 //
 // Hidden setup code (textarea.hs-hidden) goes before every block after it
 // (with data-next: only before the next block).
@@ -33,7 +34,7 @@
 
   // Usage counts: which button was pressed on which block, and what came
   // of it, sent to the usage counter (hints/server.py, /event). No code,
-  // and nothing that tells readers apart (Dave, 2026-11-12), except a
+  // and nothing that tells readers apart, except a
   // random number for this visit of the page: made when the page loads,
   // kept only in memory (nothing stored in the browser), gone when the page
   // closes or reloads. It tells "one reader pressed Check 50 times" from
@@ -56,8 +57,7 @@
     } catch (e) { /* counting is never worth an error */ }
   }
   const notebook = () => meta("hs-notebook") === "true";
-  const split = () =>
-    (new URLSearchParams(location.search).get("layout") || meta("hs-layout") || "split") === "split";
+  const storagePrefix = () => (meta("hs-storage") || "thunk") + ":";
 
   const blocks = []; // {cm, kind, number} in page order
 
@@ -300,10 +300,10 @@
   // Send the program; returns the outputs per input (and GHC's warnings,
   // if any, as outputs.warnings), or null after showing an error.
   async function execute(block, segments, busy) {
-    // Compile errors and warnings are about the definitions: in the split
-    // layout they go between the two panels (block.msg), otherwise in out.
+    // Compile errors and warnings are about the definitions: they go
+    // between the two panels (block.msg).
     const out = block.out, msg = block.msg;
-    if (msg !== out) msg.replaceChildren();
+    msg.replaceChildren();
     const sources = Object.fromEntries(segments.map((s) => [s.name, s.text]));
     block.div.classList.remove("hs-stale");
     block.lastError = null;
@@ -316,7 +316,7 @@
     if (r.err) { showError(out, r.err); return null; }
     const ghcout = fixExcerpts((r.ghcout || "").trim(), sources);
     if (/^\S.*?:\d+:\d+(-\d+)?: error/m.test(ghcout) || (r.ec && ghcout)) {
-      if (msg !== out) out.replaceChildren();
+      out.replaceChildren();
       showError(msg, ghcout);
       block.lastError = ghcout;
       return null;
@@ -353,11 +353,11 @@
     block.lastAction = "run";
     block.transcript = "";
     clearInline(block);
-    // In the split layout, the results go under the lines that are there now.
-    const repl = block.repl && parseRepl(block.repl.getValue())
+    // The results go under the input lines that are there now.
+    const repl = parseRepl(block.repl.getValue())
       .map((inp) => ({ lines: Object.assign([...inp.lines], { stdin: inp.stdin }),
         handle: block.repl.getLineHandle(inp.end) }));
-    const inputs = repl ? repl.map((r) => r.lines) : parse(code).inputs;
+    const inputs = repl.map((r) => r.lines);
     const context = [...hidden(block), ...earlier(block)];
     const outputs = await execute(block, [...context, { name: "Main.hs", text: code }], "Running…");
     const explain = (output) => offerExplain(block, { code, context, output });
@@ -371,32 +371,20 @@
         + "GHCi inputs and their outputs:\n" + transcript(inputs, outputs)));
     }
     const warnings = outputs.warnings ? [el("pre", "hs-warning", outputs.warnings)] : [];
+    block.msg.replaceChildren(...warnings);
     if (inputs.length === 0) {
-      if (repl) block.msg.replaceChildren(...warnings);
-      out.replaceChildren(...(repl ? [] : warnings), el("div", "hs-status", repl
-        ? "Compiled without errors. Type an expression in the green box to evaluate it."
-        : "Compiled without errors. Add a line like  >>> expression  to evaluate something."));
+      out.replaceChildren(el("div", "hs-status",
+        "Compiled without errors. Type an expression in the green box to evaluate it."));
       return;
     }
-    if (repl) {
-      block.msg.replaceChildren(...warnings);
-      out.replaceChildren();
-      block.transcript = transcript(inputs, outputs);
-      repl.forEach((r, i) => {
-        const o = outputs[i] || "";
-        if (!o) return;
-        const node = el("pre", "hs-inline " + (isErrorOutput(o) ? "hs-error" : "hs-result"), o);
-        block.widgets.push(block.repl.addLineWidget(r.handle, node, { noHScroll: true }));
-      });
-      return;
-    }
-    const pre = el("pre", "hs-transcript");
-    inputs.forEach((inp, i) => {
-      pre.append(el("span", "hs-input", showInput(inp) + "\n"));
+    out.replaceChildren();
+    block.transcript = transcript(inputs, outputs);
+    repl.forEach((r, i) => {
       const o = outputs[i] || "";
-      if (o) pre.append(el("span", isErrorOutput(o) ? "hs-error" : "hs-result", o + "\n"));
+      if (!o) return;
+      const node = el("pre", "hs-inline " + (isErrorOutput(o) ? "hs-error" : "hs-result"), o);
+      block.widgets.push(block.repl.addLineWidget(r.handle, node, { noHScroll: true }));
     });
-    out.replaceChildren(...warnings, pre);
   }
 
   function clearInline(block) {
@@ -515,7 +503,7 @@
   //   style    Hint after a passing Check: feedback on style
   //   explain  "Explain this error" after Run gives an error
   const hintBy = () => meta("hs-hint-by") || "Google's Gemini";
-  const consentKey = "fp-notes:hint-consent";
+  const consentKey = storagePrefix() + "hint-consent";
 
   function consent(container) {
     try { if (localStorage.getItem(consentKey) === "yes") return Promise.resolve(true); } catch (e) { /* ask */ }
@@ -600,7 +588,7 @@
 
   // Whether the reader's code has passed this exercise's tests (which
   // makes the solution available), kept in the browser.
-  const passKey = (block) => "fp-notes:passed:" + location.pathname + ":" + block.number;
+  const passKey = (block) => storagePrefix() + "passed:" + location.pathname + ":" + block.number;
   function passedBefore(block) {
     try { return localStorage.getItem(passKey(block)) === "yes"; } catch (e) { return false; }
   }
@@ -609,7 +597,7 @@
   }
 
   // The reader's edits are kept in the browser, per page and block.
-  const storageKey = (block) => "fp-notes:" + location.pathname + ":" + block.number;
+  const storageKey = (block) => storagePrefix() + location.pathname + ":" + block.number;
   function load(block) {
     try { return localStorage.getItem(storageKey(block)); } catch (e) { return null; }
   }
@@ -651,43 +639,36 @@
       ...more,
     });
     let original = area.value;
-    if (split()) {
-      // Definitions on top (hidden while there are none), GHCi input below.
-      const start = splitCode(saved !== null ? saved : area.value);
-      const first = splitCode(area.value);
-      original = joinCode(first.defs, first.repl);
-      area.value = start.defs;
-      block.cm = CodeMirror.fromTextArea(area, options());
-      const panel = el("div", "hs-repl");
-      block.msg = el("div", "hs-output hs-msg");
-      div.append(block.msg, panel);
-      block.repl = CodeMirror(panel, options({
-        value: start.repl, lineNumbers: false, gutters: ["hs-prompt"],
-        placeholder: "Type an expression, e.g.  1 + 2",
-      }));
-      const prompts = () => {
-        block.repl.clearGutter("hs-prompt");
-        parseRepl(block.repl.getValue()).forEach((inp) =>
-          block.repl.setGutterMarker(inp.start, "hs-prompt", el("span", "hs-prompt-mark", ">")));
-      };
-      const showDefs = () => {
-        const wrapper = block.cm.getWrapperElement(), show = !!(first.defs || block.cm.getValue().trim());
-        if (wrapper.hidden === show) { wrapper.hidden = !show; if (show) block.cm.refresh(); }
-      };
-      block.getCode = () => joinCode(block.cm.getValue(), block.repl.getValue());
-      block.setCode = (code) => {
-        const p = splitCode(code);
-        block.cm.setValue(p.defs); block.repl.setValue(p.repl);
-        showDefs();
-      };
-      block.repl.on("change", prompts);
-      prompts(); showDefs();
-    } else {
-      if (saved !== null) area.value = saved;
-      block.cm = CodeMirror.fromTextArea(area, options());
-      block.getCode = () => block.cm.getValue();
-      block.setCode = (code) => block.cm.setValue(code);
-    }
+    // Definitions on top (hidden while there are none), GHCi input below.
+    const start = splitCode(saved !== null ? saved : area.value);
+    const first = splitCode(area.value);
+    original = joinCode(first.defs, first.repl);
+    area.value = start.defs;
+    block.cm = CodeMirror.fromTextArea(area, options());
+    const panel = el("div", "hs-repl");
+    block.msg = el("div", "hs-output hs-msg");
+    div.append(block.msg, panel);
+    block.repl = CodeMirror(panel, options({
+      value: start.repl, lineNumbers: false, gutters: ["hs-prompt"],
+      placeholder: "Type an expression, e.g.  1 + 2",
+    }));
+    const prompts = () => {
+      block.repl.clearGutter("hs-prompt");
+      parseRepl(block.repl.getValue()).forEach((inp) =>
+        block.repl.setGutterMarker(inp.start, "hs-prompt", el("span", "hs-prompt-mark", ">")));
+    };
+    const showDefs = () => {
+      const wrapper = block.cm.getWrapperElement(), show = !!(first.defs || block.cm.getValue().trim());
+      if (wrapper.hidden === show) { wrapper.hidden = !show; if (show) block.cm.refresh(); }
+    };
+    block.getCode = () => joinCode(block.cm.getValue(), block.repl.getValue());
+    block.setCode = (code) => {
+      const p = splitCode(code);
+      block.cm.setValue(p.defs); block.repl.setValue(p.repl);
+      showDefs();
+    };
+    block.repl.on("change", prompts);
+    prompts(); showDefs();
     block.original = original;
     blocks.push(block);
     hiddenCodeLine(block);
@@ -696,7 +677,6 @@
     const out = el("div", "hs-output");
     out.setAttribute("aria-live", "polite");
     block.out = out;
-    if (!block.msg) block.msg = out;
     const note = el("div", "hs-note", "Your edited version. Reset brings back the original.");
     note.hidden = saved === null || saved === original;
     const changed = () => {
@@ -737,7 +717,7 @@
     bar.append(spacer);
     let shown = null;
     if (solution) {
-      // An open block ("try it yourself" in the lecture text) offers its
+      // An open block ("try it yourself" in the text) offers its
       // definition from the start; an exercise only once the tests pass.
       const open = div.dataset.open === "1";
       const showLabel = open ? "Show definition" : "Show solution";
@@ -769,13 +749,13 @@
     }).classList.add("hs-secondary");
     div.append(bar, note, out);
     // For tests (tests/visual.mjs): the code in the ">>>" form, and the
-    // results as text, with the inputs in the split layout.
+    // results as text, with the inputs.
     div.hs = {
       getCode: () => block.getCode(),
       setCode: (code) => block.setCode(code),
-      outputText: () => block.repl && block.lastAction === "run"
+      outputText: () => block.lastAction === "run"
         ? [block.msg.innerText.trim(), out.innerText.trim(), block.transcript].filter(Boolean).join("\n")
-        : [block.msg === out ? "" : block.msg.innerText.trim(), out.innerText].filter(Boolean).join("\n"),
+        : [block.msg.innerText.trim(), out.innerText].filter(Boolean).join("\n"),
     };
   }
 

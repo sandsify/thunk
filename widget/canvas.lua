@@ -1,23 +1,26 @@
 -- Pandoc filter for the Canvas version of a page (widget/build-canvas.sh).
--- Runs before filter.lua. The mode is the metadata field hs-mode:
+-- Runs after names.lua and before filter.lua. The mode is the metadata
+-- field hs-mode:
 --
 --   embed   keep only runnable block number hs-block (counted from 1, in
---           page order), with its check and solution blocks and the hidden
+--           page order), with its check and solution blocks and the setup
 --           blocks before it: a page with just that one block, for an iframe.
 --   canvas  replace every runnable block with an iframe showing
---           hs-base/NAME/N.html, drop the hidden, check and solution
+--           hs-base/NAME/N.html, drop the setup, check and solution
 --           blocks, and turn the page's extras (title, abstract, contents,
---           ::: video) into plain Markdown, for mkdocstocanvas.
+--           exercises, hints, notes) into plain Markdown with inline
+--           styles, for a Markdown-to-LMS converter such as mkdocstocanvas.
+--           Other ::: divs keep only their contents.
 --
 -- Runnable blocks are the top-level .run and .exercise blocks.
 
 local function is_hs(b, class)
   return b.t == "CodeBlock" and b.classes:includes("haskell") and b.classes:includes(class)
 end
-local function runnable(b) return is_hs(b, "run") or is_hs(b, "exercise") end
+local function runnable(b) return is_hs(b, "run") or is_hs(b, "exercise") or is_hs(b, "tryit") end
 local function attached(b) return is_hs(b, "check") or is_hs(b, "solution") end
 local function is_test(b)
-  return b.t == "CodeBlock" and (b.classes:includes("expect") or b.classes:includes("try"))
+  return b.t == "CodeBlock" and (b.classes:includes("expect") or b.classes:includes("attempt"))
 end
 
 -- An estimate of the block's height in pixels in the split layout, used as
@@ -30,7 +33,7 @@ local function height(b)
   local h = 60 -- the button bar
   if defs > 0 then h = h + 16 + 22 * defs end
   h = h + 16 + 33 * math.max(inputs, 1) -- inputs, before any output
-  if is_hs(b, "exercise") then h = h + 24 end
+  if is_hs(b, "exercise") or is_hs(b, "tryit") then h = h + 24 end
   return math.floor(h + 8)
 end
 
@@ -38,13 +41,34 @@ local function escape(s)
   return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
+-- An exercise (::: exercise) becomes a box: a <div markdown="1"> with
+-- inline styles (Canvas keeps those, not classes; mkdocstocanvas reads the
+-- Markdown inside, with md_in_html). The page is flattened, so that the
+-- blocks inside an exercise are counted like the others.
+local box_style = "background: #fdf3f8; border: 1px solid #efc3d9; " ..
+  "border-radius: 8px; padding: 2px 16px 12px; margin: 24px 0;"
+
+local function flatten(blocks, with_boxes)
+  local out = {}
+  for _, b in ipairs(blocks) do
+    if b.t == "Div" and b.classes:includes("exercise") then
+      if with_boxes then table.insert(out, pandoc.RawBlock("html", '<div markdown="1" style="' .. box_style .. '">')) end
+      for _, inner in ipairs(flatten(b.content, with_boxes)) do table.insert(out, inner) end
+      if with_boxes then table.insert(out, pandoc.RawBlock("html", "</div>")) end
+    else
+      table.insert(out, b)
+    end
+  end
+  return out
+end
+
 local function embed(doc, n)
   local out, count, i = {}, 0, 1
-  local blocks = doc.blocks
+  local blocks = flatten(doc.blocks, false)
   -- The text since the last heading: the block page has no text of its
   -- own, but the AI hints need the exercise (notes.js reads it from here).
   local text = {}
-  local next_hidden = {} -- .hidden .next blocks (open and .secret), for the next runnable block only
+  local next_hidden = {} -- .setup .next blocks (open and .secret), for the next runnable block only
   while i <= #blocks do
     local b = blocks[i]
     if b.t == "Header" and b.level <= 3 then
@@ -66,9 +90,9 @@ local function embed(doc, n)
         end
         break
       end
-    elseif is_hs(b, "hidden") and b.classes:includes("next") then
+    elseif is_hs(b, "setup") and b.classes:includes("next") then
       table.insert(next_hidden, b)
-    elseif is_hs(b, "hidden") then
+    elseif is_hs(b, "setup") then
       table.insert(out, b)
     end
     i = i + 1
@@ -82,32 +106,6 @@ local function embed(doc, n)
   doc.meta.abstract = nil
   doc.meta.contents = nil
   return doc
-end
-
--- Each exercise (a ## or ### heading starting with "Exercise", down to the
--- next heading of the same or a higher level, or a horizontal rule) in a
--- box: a <div markdown="1"> with inline styles (Canvas keeps those, not
--- classes; mkdocstocanvas reads the Markdown inside, with md_in_html).
-local box_style = "background: #fdf3f8; border: 1px solid #efc3d9; " ..
-  "border-radius: 8px; padding: 2px 16px 12px; margin: 24px 0;"
-
-function boxes(blocks)
-  local out, open_level = {}, nil
-  local function close()
-    if open_level then table.insert(out, pandoc.RawBlock("html", "</div>")) end
-    open_level = nil
-  end
-  for _, b in ipairs(blocks) do
-    local level = b.t == "Header" and b.level or nil
-    if open_level and ((level and level <= open_level) or b.t == "HorizontalRule") then close() end
-    if not open_level and level and level <= 3 and pandoc.utils.stringify(b):match("^Exercise") then
-      table.insert(out, pandoc.RawBlock("html", '<div markdown="1" style="' .. box_style .. '">'))
-      open_level = level
-    end
-    table.insert(out, b)
-  end
-  close()
-  return out
 end
 
 -- The contents: the ## headings only (mkdocstocanvas's [TOC] lists every
@@ -146,23 +144,26 @@ local function canvas(doc, base, name)
       and meta.title or pandoc.Inlines(pandoc.utils.stringify(meta.title))))
   end
   if meta.abstract then
-    -- folded away: "About this lecture" (details/summary, which Canvas keeps)
+    -- folded away (details/summary, which Canvas keeps), under the
+    -- abstract-title of the page (default "About this page")
     local abs = meta.abstract
     local blocks = pandoc.utils.type(abs) == "Blocks" and abs or pandoc.Blocks{pandoc.Plain(abs)}
-    table.insert(out, pandoc.RawBlock("html", '<details markdown="1"><summary>About this lecture</summary>'))
+    table.insert(out, pandoc.RawBlock("html", '<details markdown="1"><summary>' ..
+      escape(meta["abstract-title"] and pandoc.utils.stringify(meta["abstract-title"]) or "About this page") .. '</summary>'))
     for _, b in ipairs(blocks) do
       if b.t == "Plain" then table.insert(out, pandoc.Para(b.content)) else table.insert(out, b) end
     end
     table.insert(out, pandoc.RawBlock("html", "</details>"))
   end
+  doc.blocks = flatten(doc.blocks, true)
   if meta.contents then table.insert(out, contents(doc.blocks)) end
-  -- Hidden code for the next block (.hidden .next) changes that block too.
+  -- Setup code for the next block (.setup .next) changes that block too.
   local pending = ""
   for idx, b in ipairs(doc.blocks) do
-    if is_hs(b, "hidden") then pending = pending .. b.text end
+    if is_hs(b, "setup") then pending = pending .. b.text end
     if runnable(b) then
       count = count + 1
-      local kind = is_hs(b, "exercise") and "exercise" or "example"
+      local kind = runnable(b) and not is_hs(b, "run") and "exercise" or "example"
       -- ?v=: a version from the block's code (with its check, solution and
       -- hidden code), so that a browser fetches the block page again when
       -- the block changes (the server sends no caching headers, and a
@@ -177,7 +178,7 @@ local function canvas(doc, base, name)
         '<iframe src="%s/%s/%d.html?v=%s" title="Haskell %s %d" width="100%%" height="%d" ' ..
         'style="border: 0; width: 100%%;" loading="lazy"></iframe>',
         base, name, count, pandoc.utils.sha1(key):sub(1, 8), kind, count, height(b))))
-    elseif is_hs(b, "hidden") or attached(b) or is_test(b) then
+    elseif is_hs(b, "setup") or attached(b) or is_test(b) then
       -- not shown; the block pages include them
     elseif b.t == "Div" and b.classes:includes("hint") then
       -- folded away under "Hint" (Canvas keeps details/summary and inline styles)
@@ -197,17 +198,13 @@ local function canvas(doc, base, name)
       end
       for _, inner in ipairs(b.content) do table.insert(out, inner) end
       table.insert(out, pandoc.RawBlock("html", "</div>"))
-    elseif b.t == "Div" and b.classes:includes("video") then
-      for _, inner in ipairs(b.content) do
-        if inner.t == "Para" or inner.t == "Plain" then
-          table.insert(out, pandoc.Para{pandoc.Emph(inner.content)})
-        else table.insert(out, inner) end
-      end
+    elseif b.t == "Div" then
+      for _, inner in ipairs(b.content) do table.insert(out, inner) end
     else
       table.insert(out, b)
     end
   end
-  doc.blocks = boxes(out)
+  doc.blocks = out
   doc.meta = pandoc.Meta{}
   return doc
 end

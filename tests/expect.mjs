@@ -3,15 +3,15 @@
 // After a runnable block (.run or .exercise, with its .check and
 // .solution blocks), a page can have:
 //
-//   ```{.expect}               the output that Run should give: exactly
+//   ```expect                  the output that Run should give: exactly
 //   >>> fromGBP 8              what the reader sees, inputs included.
 //   99.08                      [...] stands for any text (within a line or
 //   ```                        over several lines). Trailing spaces and
 //                              blank lines at the end do not count.
 //
-//   ```{.expect action=check}  the same, for the Check button.
+//   ```expect {action=check}   the same, for the Check button.
 //
-//   ```{.haskell .try}         code to put in the block first (a wrong
+//   ```haskell {.attempt}      code to put in the block first (a wrong
 //   ...                        answer, say); the .expect blocks after it
 //   ```                        apply to that code.
 //
@@ -57,9 +57,9 @@ export function scenarioFromMarkdown(path, dir = "") {
   const steps = [];
   let block = -1, code, n = 0;
   for (const b of blocks(readFileSync(path, "utf8"))) {
-    if (b.classes.includes("run") || b.classes.includes("exercise")) {
+    if (["run", "exercise", "tryit"].some((c) => b.classes.includes(c))) {
       block++; code = undefined; n = 0;
-    } else if (b.classes.includes("try") && block >= 0) {
+    } else if ((b.classes.includes("attempt") || b.classes.includes("try")) && block >= 0) {
       code = b.text;
     } else if (b.classes.includes("expect") && block >= 0) {
       const click = b.attrs.action === "check" ? "Check" : "Run";

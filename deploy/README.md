@@ -24,8 +24,8 @@ an OpenRouter key with its own credit limit.
 
 ```sh
 sudo dnf -y install git
-git clone https://github.com/sandsify/fp-notes.git   # private: a deploy key or token
-cd fp-notes && git submodule update --init thunk/play-haskell
+git clone https://github.com/sandsify/thunk.git
+cd thunk && git submodule update --init server/play-haskell
 cd deploy
 cp env.example .env && chmod 600 .env && vi .env      # SITE, PAGES_ORIGIN, the key
 sudo ./setup-rhel9.sh                                  # Docker CE, firewall, start
@@ -49,7 +49,7 @@ Then publish the pages against it, from a machine with a Kerberos ticket
 (`kinit`):
 
 ```sh
-THUNK_URL=https://SITE HINT_URL=https://SITE tools/publish.sh lectures/*.md
+THUNK_URL=https://SITE HINT_URL=https://SITE widget/build.sh page.md out/
 ```
 
 ## Run

@@ -1,0 +1,41 @@
+/* The look of a standalone Thunk page (widget/build.sh): font, width,
+   headings, contents, abstract, QR code. Not needed when the blocks are
+   part of another site; thunk.css styles the blocks themselves. */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+h1, h2, h3 { line-height: 1.25; }
+a { color: var(--accent); }
+code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
+pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+.abstract { font-style: italic; }
+.toc { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 1.25rem 0.75rem; margin: 1.5rem 0 2rem; }
+.toc h2 { font-size: 1rem; margin: 0.5rem 0; color: var(--muted); }
+.toc ul { margin: 0; padding-left: 1.25rem; }
+.toc li { margin: 0.15rem 0; }
+
+/* qr: true: a QR code of the page's own address. */
+.hs-qr { display: flex; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 0.75rem;
+  border: 1px solid var(--line); border-radius: 8px; }
+.hs-qr[hidden] { display: none; }
+.hs-qr-code { width: 120px; height: 120px; flex: none; cursor: zoom-in; background: #fff; border-radius: 4px; }
+.hs-qr-code svg, .hs-qr-big svg { width: 100%; height: 100%; display: block; }
+.hs-qr-side { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; min-width: 0; }
+.hs-qr-label { color: var(--muted); font-size: 0.9rem; }
+.hs-qr-url { font-weight: 600; overflow-wrap: anywhere; }
+.hs-qr-side button { font: inherit; font-size: 0.85rem; padding: 0.2em 0.8em; border-radius: 4px;
+  border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.hs-qr-overlay { position: fixed; inset: 0; z-index: 100; background: #fff; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; cursor: zoom-out; }
+.hs-qr-big { width: min(80vh, 90vw); height: min(80vh, 90vw); }
+.hs-qr-big-url { font: 600 clamp(1rem, 3vw, 2.2rem) system-ui, sans-serif; color: #000; }
+
+/* The abstract, folded under its title ("About this page"). */
+details.abstract { margin: 0 0 1.5rem; color: var(--muted); }
+details.abstract > summary { cursor: pointer; font-weight: 600; font-style: normal; }
+details.abstract[open] > summary { margin-bottom: 0.4rem; }

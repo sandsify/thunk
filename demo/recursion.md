@@ -9,7 +9,7 @@ A list in Haskell is either empty, `[]`, or an element in front of
 another list, `x : xs`. Every list is built this way: `[1, 2, 3]` is
 just a short way to write `1 : (2 : (3 : []))`.
 
-```{.haskell .run}
+```haskell {.run}
 >>> 1 : (2 : (3 : []))
 >>> 'h' : "ello"
 >>> :t (:)
@@ -22,7 +22,7 @@ has two equations: one for the empty list, and one for a list with a
 first element `x` and a rest `xs`. In the second equation we may use
 the function itself on `xs`, which is a shorter list. That is recursion.
 
-```{.haskell .run}
+```haskell {.run}
 size :: [a] -> Int
 size []       = 0
 size (x : xs) = 1 + size xs
@@ -45,7 +45,7 @@ size "abc"
 The same pattern gives many functions. Here are two more: one that
 builds a new list, and one that keeps only some of the elements.
 
-```{.haskell .run}
+```haskell {.run}
 squares :: [Integer] -> [Integer]
 squares []       = []
 squares (x : xs) = x * x : squares xs
@@ -65,7 +65,7 @@ evens (x : xs)
 What happens if we forget the equation for the empty list? Run this and
 read the error. Then add the missing equation and run it again.
 
-```{.haskell .run}
+```haskell {.run}
 total :: [Integer] -> Integer
 total (x : xs) = x + total xs
 
@@ -76,7 +76,7 @@ GHC accepts the definition, but every call eventually reaches `total []`,
 for which there is no equation. With warnings on (`-Wall`, as in the
 labs) GHC tells you about this before you run anything:
 
-```{.haskell .run}
+```haskell {.run}
 {-# OPTIONS_GHC -Wall #-}
 total :: [Integer] -> Integer
 total (x : xs) = x + total xs
@@ -84,20 +84,22 @@ total (x : xs) = x + total xs
 >>> total [1, 2, 3]
 ```
 
+::: exercise
+
 ## Exercises
 
 ### 1. Doubling
 
 Define `doubleAll`, which doubles every number in a list.
 
-```{.haskell .exercise}
+```haskell {.exercise}
 doubleAll :: [Integer] -> [Integer]
 doubleAll xs = undefined
 
 >>> doubleAll [1, 2, 3]
 ```
 
-```{.haskell .check}
+```haskell {.check}
 import Test.QuickCheck
 
 prop_doubleAll :: [Integer] -> Bool
@@ -106,7 +108,7 @@ prop_doubleAll xs = doubleAll xs == map (* 2) xs
 >>> quickCheck prop_doubleAll
 ```
 
-```{.haskell .solution}
+```haskell {.solution}
 doubleAll :: [Integer] -> [Integer]
 doubleAll []       = []
 doubleAll (x : xs) = 2 * x : doubleAll xs
@@ -117,7 +119,7 @@ doubleAll (x : xs) = 2 * x : doubleAll xs
 Define `member x xs`, which is `True` if `x` occurs in `xs`. Do not use
 `elem`: write the recursion yourself.
 
-```{.haskell .exercise}
+```haskell {.exercise}
 member :: Eq a => a -> [a] -> Bool
 member x xs = undefined
 
@@ -125,7 +127,7 @@ member x xs = undefined
 >>> member 'z' "haskell"
 ```
 
-```{.haskell .check}
+```haskell {.check}
 import Test.QuickCheck
 
 prop_member :: Int -> [Int] -> Bool
@@ -138,7 +140,7 @@ prop_member_found x ys zs = member x (ys ++ [x] ++ zs)
 >>> quickCheck prop_member_found
 ```
 
-```{.haskell .solution}
+```haskell {.solution}
 member :: Eq a => a -> [a] -> Bool
 member x []       = False
 member x (y : ys) = x == y || member x ys
@@ -150,14 +152,14 @@ Define `merge`, which combines two sorted lists into one sorted list.
 Here the recursion is on two lists at once: compare their first
 elements.
 
-```{.haskell .exercise}
+```haskell {.exercise}
 merge :: [Int] -> [Int] -> [Int]
 merge xs ys = undefined
 
 >>> merge [1, 4, 9] [2, 3, 10]
 ```
 
-```{.haskell .check}
+```haskell {.check}
 import Test.QuickCheck
 import Data.List (sort)
 
@@ -167,7 +169,7 @@ prop_merge xs ys = merge (sort xs) (sort ys) == sort (xs ++ ys)
 >>> quickCheck prop_merge
 ```
 
-```{.haskell .solution}
+```haskell {.solution}
 merge :: [Int] -> [Int] -> [Int]
 merge [] ys = ys
 merge xs [] = xs
@@ -175,3 +177,4 @@ merge (x : xs) (y : ys)
   | x <= y    = x : merge xs (y : ys)
   | otherwise = y : merge (x : xs) ys
 ```
+:::

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hints: AI feedback on a failed Check, for the lecture pages.
+"""Hints: AI feedback on a failed Check, for Thunk pages.
 
 POST /hint with JSON {page, mode, level, previous, exercise, code,
 context, tests, output, solution}: what to do (mode "fix" after a failed
@@ -60,7 +60,9 @@ TRUST_PROXY = os.environ.get("HINT_TRUST_PROXY") == "1"
 LOG = os.environ.get("HINT_LOG")
 EVENT_LOG = os.environ.get("EVENT_LOG")
 EVENTS_PER_MINUTE = int(os.environ.get("EVENTS_PER_MINUTE", "600"))
-PROMPT = (Path(__file__).with_name("prompt.md")).read_text()
+# HINT_PROMPT: a prompt file of your own (e.g. naming your course); the
+# default is prompt.md next to this file.
+PROMPT = Path(os.environ.get("HINT_PROMPT") or Path(__file__).with_name("prompt.md")).read_text()
 
 # The most we accept of each field, in characters.
 LIMITS = {"page": 200, "mode": 10, "level": 2, "previous": 4000, "exercise": 6000, "code": 10000, "context": 10000, "tests": 8000,
@@ -80,7 +82,7 @@ TASKS = {
                 "cases or parts to change and how, naming functions where that helps. Still no code.",
     ("style", 1): "All the tests pass. The student asked for feedback on style. Give up to three "
                   "concrete suggestions (at most 120 words) that would make the code clearer or more "
-                  "idiomatic Haskell for this point in the course: for example a library function or "
+                  "idiomatic Haskell for this point in the material: for example a library function or "
                   "pattern matching instead of hand-written recursion or guards, redundant cases or "
                   "brackets, names, or repeated code. Only real improvements: if the code is already "
                   "good, say so in one or two sentences and stop. Do not rewrite the code.",
@@ -283,7 +285,7 @@ class Handler(BaseHTTPRequestHandler):
         "visit" is a random number for one page load, kept only in the
         page's memory. A "visitor" id is accepted if the pages ever send one."""
         if not allowed(self.headers.get("Origin", "")):
-            return self.reply(403, {"why": "only for the course pages"})
+            return self.reply(403, {"why": "only for the pages that use this service"})
         n = int(self.headers.get("Content-Length") or 0)
         if n <= 0 or n > 2000:
             return self.reply(413, {"why": "too long"})
@@ -323,7 +325,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/hint":
             return self.reply(404, {"hint": None, "why": "not found"})
         if not allowed(self.headers.get("Origin", "")):
-            return self.reply(403, {"hint": None, "why": "Hints are only for the course pages."})
+            return self.reply(403, {"hint": None, "why": "Hints are only for the pages that use this service."})
         n = int(self.headers.get("Content-Length") or 0)
         if n <= 0 or n > MAX_BODY:
             return self.reply(413, {"hint": None, "why": "The code is too long for a hint."})

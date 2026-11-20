@@ -1,4 +1,4 @@
-# Locally: GEMINI_API_KEY=$(security find-generic-password -s gemini-fp-notes -w) docker compose up -d
+# Locally: GEMINI_API_KEY=$(security find-generic-password -s gemini-thunk -w) docker compose up -d
 services:
   hints:
     build: .

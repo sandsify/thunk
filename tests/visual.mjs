@@ -8,9 +8,7 @@
 // each step can set a block's code, click a button, check the output
 // against a pattern, and save a screenshot of the block. At the end each
 // page is also saved whole, in light and dark, and at phone width.
-// Every scenario runs twice: in the page's own layout and with
-// ?layout=classic. Finally, on every page, each exercise's solution must
-// pass its tests.
+// Finally, on every page, each exercise's solution must pass its tests.
 // Needs Google Chrome, pandoc, and Thunk on localhost:8123.
 // Exits with 1 if a check failed.
 
@@ -52,7 +50,7 @@ const pageDirs = (process.env.PAGE_DIRS || "demo tests/pages").split(/\s+/).filt
   return { dir: process.env.PAGE_DIRS ? join(process.cwd(), dir) : join(root, dir), name: dir, sub };
 });
 const hintDirs = (process.env.HINT_DIRS || "demo").split(/\s+/);
-const isPage = (f) => f.endsWith(".md") && !/^[A-Z0-9_-]+\.md$/.test(f);
+const isPage = (f) => f.endsWith(".md") && !/^[A-Z][A-Z_-]*\.md$/.test(f);
 for (const { dir, name, sub } of pageDirs)
   for (const f of readdirSync(dir).filter(isPage))
     execFileSync(join(root, "widget/build.sh"), [join(dir, f), join(site, sub)], {
@@ -160,9 +158,10 @@ for (const { dir, sub } of pageDirs)
     if (sc.steps.length) scenarios.push(sc);
   }
 
-for (const sc of scenarios.filter((sc) => !process.env.ONLY || sc.page.startsWith(process.env.ONLY)).flatMap((sc) => [
-  { ...sc, url: sc.page, stem: sc.page.replace(/\.html$/, "").replace("/", "-") },
-  { ...sc, url: sc.page + "?layout=classic", stem: sc.page.replace(/\.html$/, "").replace("/", "-") + "-classic" }])) {
+// Only the scenarios for pages that were built (PAGE_DIRS).
+const built = (page) => { try { readFileSync(join(site, page)); return true; } catch { return false; } };
+for (const sc of scenarios.filter((sc) => built(sc.page) && (!process.env.ONLY || sc.page.startsWith(process.env.ONLY))).map((sc) =>
+  ({ ...sc, url: sc.page, stem: sc.page.replace(/\.html$/, "").replace("/", "-") }))) {
   console.log(`== ${sc.url}`);
   await setWidth(900); await setDark(false);
   await navigate(sc.url);
@@ -192,7 +191,7 @@ for (const sc of scenarios.filter((sc) => !process.env.ONLY || sc.page.startsWit
 // Every exercise that has a solution: Check with the solution must pass.
 const pages = [...new Set(pageDirs.map(({ sub }) => sub))]
   .flatMap((sub) => readdirSync(join(site, sub)).map((f) => (sub ? sub + "/" : "") + f))
-  .filter((f) => f.endsWith(".html") && (!process.env.ONLY || f.startsWith(process.env.ONLY))).flatMap((f) => [f, f + "?layout=classic"]);
+  .filter((f) => f.endsWith(".html") && (!process.env.ONLY || f.startsWith(process.env.ONLY)));
 console.log("== solutions pass their tests");
 for (const page of pages) {
   await setWidth(900); await setDark(false);

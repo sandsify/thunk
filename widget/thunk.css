@@ -1,3 +1,9 @@
+/* Thunk's blocks: editors, GHCi panel, results, Check, hints, exercise
+   and hint boxes. Colours are variables: override them in a stylesheet
+   loaded after this one (front matter css:) to change the look.
+   Dark mode follows the system unless the page sets theme: light or
+   theme: dark (data-theme on <html>); block pages in iframes default to
+   light, to match an LMS page around them. */
 :root {
   --bg: #fdfdfc;
   --fg: #1f2328;
@@ -17,8 +23,27 @@
   --hint-bg: #eef5fd;
   --hint-line: #6f9fd6;
 }
+:root[data-theme="dark"] {
+  --bg: #16181d;
+  --fg: #e6e6e6;
+  --muted: #9aa3ad;
+  --line: #353a42;
+  --code-bg: #1e2128;
+  --accent: #b3a6f2;
+  --pass-bg: #15291e;
+  --pass-line: #5cc48a;
+  --fail-bg: #2e1916;
+  --fail-line: #f08a77;
+  --error: #f08a77;
+  --repl-bg: #18241b;
+  --repl-line: #3f6b4b;
+  --ex-bg: #26191f;
+  --ex-line: #6b3c54;
+  --hint-bg: #172230;
+  --hint-line: #4f7fb3;
+}
 @media (prefers-color-scheme: dark) {
-  :root:not(.hs-embed) {
+  :root:not([data-theme="light"]) {
     --bg: #16181d;
     --fg: #e6e6e6;
     --muted: #9aa3ad;
@@ -39,19 +64,14 @@
   }
 }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
-}
-h1, h2, h3 { line-height: 1.25; }
-/* A block page in an iframe (widget/build-canvas.sh): only the block, in
-   light colours to match the page around it. */
-.hs-embed body { max-width: none; margin: 0; padding: 1px; background: transparent; }
+/* A block page in an iframe (widget/build-canvas.sh): only the block. */
+.hs-embed body { max-width: none; margin: 0; padding: 1px; background: transparent; color: var(--fg);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
 .hs-embed .hs-block { margin: 0; }
+.hs-block pre, .hs-block code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
+.hs-block pre { background: var(--code-bg); padding: 0.75rem 1rem; }
+
+.hs-block { margin: 0; }
 a { color: var(--accent); }
 code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
 .abstract { font-style: italic; }
@@ -106,7 +126,6 @@ pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; ove
 .hs-solution .CodeMirror { height: auto; }
 .hs-label { font-size: 0.75rem; color: var(--muted); padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--line); }
 .hs-status { padding: 0.5rem 1rem; color: var(--muted); font-size: 0.9rem; }
-.hs-input { color: var(--muted); }
 .hs-error { color: var(--error); }
 .hs-pass, .hs-fail { padding: 0.6rem 1rem; }
 .hs-pass { background: var(--pass-bg); border-left: 4px solid var(--pass-line); }
@@ -122,14 +141,21 @@ pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; ove
 .CodeMirror-gutters { background: var(--code-bg); border-right: 1px solid var(--line); }
 .CodeMirror-linenumber { color: var(--muted); }
 .CodeMirror-cursor { border-left-color: var(--fg); }
+:root[data-theme="dark"] .cm-s-default .cm-keyword { color: #d2a8ff; }
+:root[data-theme="dark"] .cm-s-default .cm-variable-2, :root[data-theme="dark"] .cm-s-default .cm-type { color: #79c0ff; }
+:root[data-theme="dark"] .cm-s-default .cm-string { color: #a5d6ff; }
+:root[data-theme="dark"] .cm-s-default .cm-number { color: #79c0ff; }
+:root[data-theme="dark"] .cm-s-default .cm-builtin, :root[data-theme="dark"] .cm-s-default .cm-atom, :root[data-theme="dark"] .cm-s-default .cm-variable-3,
+:root[data-theme="dark"] .cm-s-default .cm-def, :root[data-theme="dark"] .cm-s-default .cm-meta, :root[data-theme="dark"] .cm-s-default .cm-qualifier { color: #c9b8ff; }
+:root[data-theme="dark"] .cm-s-default .cm-operator { color: var(--fg); }
 @media (prefers-color-scheme: dark) {
-  .cm-s-default .cm-keyword { color: #d2a8ff; }
-  .cm-s-default .cm-variable-2, .cm-s-default .cm-type { color: #79c0ff; }
-  .cm-s-default .cm-string { color: #a5d6ff; }
-  .cm-s-default .cm-number { color: #79c0ff; }
-  .cm-s-default .cm-builtin, .cm-s-default .cm-atom, .cm-s-default .cm-variable-3,
-  .cm-s-default .cm-def, .cm-s-default .cm-meta, .cm-s-default .cm-qualifier { color: #c9b8ff; }
-  .cm-s-default .cm-operator { color: var(--fg); }
+  :root:not([data-theme="light"]) .cm-s-default .cm-keyword { color: #d2a8ff; }
+  :root:not([data-theme="light"]) .cm-s-default .cm-variable-2, :root:not([data-theme="light"]) .cm-s-default .cm-type { color: #79c0ff; }
+  :root:not([data-theme="light"]) .cm-s-default .cm-string { color: #a5d6ff; }
+  :root:not([data-theme="light"]) .cm-s-default .cm-number { color: #79c0ff; }
+  :root:not([data-theme="light"]) .cm-s-default .cm-builtin, :root:not([data-theme="light"]) .cm-s-default .cm-atom, :root:not([data-theme="light"]) .cm-s-default .cm-variable-3,
+  :root:not([data-theme="light"]) .cm-s-default .cm-def, :root:not([data-theme="light"]) .cm-s-default .cm-meta, :root:not([data-theme="light"]) .cm-s-default .cm-qualifier { color: #c9b8ff; }
+  :root:not([data-theme="light"]) .cm-s-default .cm-operator { color: var(--fg); }
 }
 
 /* AI hints after a failed Check (hints/server.py). */
@@ -140,7 +166,7 @@ pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; ove
 .hs-hint > .hs-label { padding: 0 0 0.2rem; border-bottom: none; color: var(--muted); font-weight: 600; }
 .hs-hint p { margin: 0.3em 0 0; white-space: pre-wrap; }
 
-/* Exercises (filter.lua wraps each in div.exercise): a box. */
+/* Exercises (::: exercise): a box. */
 .exercise {
   background: var(--ex-bg);
   border: 1px solid var(--ex-line);
@@ -161,26 +187,6 @@ pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; ove
 .hs-hint-consent button.hs-secondary, .hs-hint button.hs-secondary { background: transparent; color: var(--muted); border-color: var(--line); }
 .hs-hint .hs-more { margin-top: 0.5em; }
 
-/* Class-meeting pages (qr: true): a QR code of the page's address. */
-.hs-qr { display: flex; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 0.75rem;
-  border: 1px solid var(--line); border-radius: 8px; }
-.hs-qr[hidden] { display: none; }
-.hs-qr-code { width: 120px; height: 120px; flex: none; cursor: zoom-in; background: #fff; border-radius: 4px; }
-.hs-qr-code svg, .hs-qr-big svg { width: 100%; height: 100%; display: block; }
-.hs-qr-side { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; min-width: 0; }
-.hs-qr-label { color: var(--muted); font-size: 0.9rem; }
-.hs-qr-url { font-weight: 600; overflow-wrap: anywhere; }
-.hs-qr-side button { font: inherit; font-size: 0.85rem; padding: 0.2em 0.8em; border-radius: 4px;
-  border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
-.hs-qr-overlay { position: fixed; inset: 0; z-index: 100; background: #fff; display: flex;
-  flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; cursor: zoom-out; }
-.hs-qr-big { width: min(80vh, 90vw); height: min(80vh, 90vw); }
-.hs-qr-big-url { font: 600 clamp(1rem, 3vw, 2.2rem) system-ui, sans-serif; color: #000; }
-
-/* The abstract, folded: "About this lecture". */
-details.abstract { margin: 0 0 1.5rem; color: var(--muted); }
-details.abstract > summary { cursor: pointer; font-weight: 600; font-style: normal; }
-details.abstract[open] > summary { margin-bottom: 0.4rem; }
 details.hint { margin: 0.5rem 0 1rem; padding: 0.3rem 0.8rem; border-left: 3px solid var(--hint-line); background: var(--hint-bg); border-radius: 4px; }
 details.hint > summary { cursor: pointer; font-weight: 600; }
 details.hint[open] > summary { margin-bottom: 0.3rem; }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# One-time setup of a fresh RHEL 9 VM for fp-notes (run as root, in the
+# One-time setup of a fresh RHEL 9 VM for Thunk (run as root, in the
 # repo's deploy/ directory). Installs Docker CE, opens http and https,
 # and starts Thunk, the hint service and Caddy.
 set -euo pipefail

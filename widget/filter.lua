@@ -1,38 +1,33 @@
 -- Pandoc filter: turns marked Haskell code blocks into placeholders that
--- notes.js makes interactive.
+-- notes.js makes interactive. Runs after names.lua, which accepts older
+-- names and checks the order of the blocks. The format is described in
+-- docs/WRITING.md.
 --
---   ```{.haskell .run}       editable example with a Run button
---   ```{.haskell .exercise}  editable, with Run and Check buttons
---   ```{.haskell .check}     hidden tests for the exercise just before it
---   ```{.haskell .solution}  a solution for that exercise, shown on request
---   ```{.haskell .exercise .open}
---                            "try it yourself" in the lecture text: like an
---                            exercise, but its solution is offered from the
---                            start ("Show definition"), and no exercise box
+--   ```haskell {.run}        editable example with a Run button
+--   ```haskell {.exercise}   editable, with Run and Check buttons
+--   ```haskell {.check}      tests for the exercise just before it
+--   ```haskell {.solution}   a solution for that exercise, shown on request
+--   ```haskell {.tryit}      "try it yourself" in the text: an exercise
+--                            whose definition is offered from the start
+--   ```haskell {.setup}      setup code that goes before every runnable
+--                            block after it (imports, definitions); readers
+--                            can open it, read-only
+--     .next                  only for the next runnable block
+--     .secret                readers cannot open it
+--   .standalone on a runnable block: no shared .setup code, only the
+--                            .setup .next code just before it
+--   ::: exercise             an exercise, drawn as a box
 --   ::: hint                 a hint, folded away ("Hint")
---
--- With the environment variable HS_NO_SOLUTIONS=1, .solution blocks are
--- left out of the page altogether (class-meeting pages: the meeting asks
--- for the answer next, so the page must not contain it).
---   ```{.haskell .hidden}    setup code, not shown, that goes before every
---                            runnable block after it (imports, definitions)
---   ```{.haskell .hidden .next}
---                            the same, for the next runnable block only
---   .standalone on a .run or .exercise block: it gets no shared .hidden
---                            code, only .hidden .next code just before it
---   ```{.haskell .hidden .secret}  (also with .next)
---                            hidden code readers cannot open with "Hidden
---                            code" (a doctored function, a fake file system);
---                            other hidden code can be opened, read-only
---   ```{.expect}, ```{.haskell .try}
---                            tests for tests/visual.mjs (see tests/expect.mjs):
+--   ::: {.note title="..."}  a boxed note with a title
+--   ```expect, ```haskell {.attempt}
+--                            tests for tests/visual.mjs (tests/expect.mjs):
 --                            dropped
 --
--- Other code blocks are left alone.
+-- With the environment variable HS_NO_SOLUTIONS=1, .solution blocks are
+-- left out of the page altogether (for a page that asks for the answer
+-- in class, the page must not contain it).
 --
--- Each exercise (a ## or ### heading starting with "Exercise", down to
--- the next heading of the same or a higher level, or a horizontal rule)
--- is wrapped in a <div class="exercise">, which notes.css draws as a box.
+-- Other code blocks are left alone.
 
 local function escape(s)
   return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
@@ -56,10 +51,10 @@ function Blocks(blocks)
   local i = 1
   while i <= #blocks do
     local b = blocks[i]
-    if b.t == "CodeBlock" and (b.classes:includes("expect") or b.classes:includes("try")) then
+    if b.t == "CodeBlock" and (b.classes:includes("expect") or b.classes:includes("attempt")) then
       -- a test, not for readers
     elseif b.t == "CodeBlock" and b.classes:includes("haskell") then
-      if b.classes:includes("hidden") then
+      if b.classes:includes("setup") then
         -- .next: only for the next runnable block (e.g. a definition the
         -- reader was asked to write, needed again further on)
         table.insert(out, pandoc.RawBlock("html",
@@ -68,7 +63,7 @@ function Blocks(blocks)
           .. ' hidden>' .. escape(b.text) .. '</textarea>'))
       elseif b.classes:includes("run") then
         table.insert(out, pandoc.RawBlock("html", block("run", b.text, nil, false, b.classes:includes("standalone"))))
-      elseif b.classes:includes("exercise") then
+      elseif b.classes:includes("exercise") or b.classes:includes("tryit") then
         -- the check and solution blocks that follow it, in any order
         local extra = {}
         while true do
@@ -79,11 +74,11 @@ function Blocks(blocks)
           extra[name] = nxt.text
           i = i + 1
         end
-        -- HS_NO_SOLUTIONS=1 (class-meeting pages, see tools/publish.sh):
-        -- the solution stays out of the page, not even hidden in it
+        -- HS_NO_SOLUTIONS=1: the solution stays out of the page, not even
+        -- hidden in it
         if os.getenv("HS_NO_SOLUTIONS") == "1" then extra.solution = nil end
         table.insert(out, pandoc.RawBlock("html",
-          block("exercise", b.text, extra, b.classes:includes("open"), b.classes:includes("standalone"))))
+          block("exercise", b.text, extra, b.classes:includes("tryit"), b.classes:includes("standalone"))))
       elseif b.classes:includes("check") or b.classes:includes("solution") then
         io.stderr:write("filter.lua: check and solution blocks must follow an exercise block\n")
         os.exit(1)
@@ -97,32 +92,6 @@ function Blocks(blocks)
   end
   return out
 end
-
-local function heading_level(b)
-  return b.t == "Header" and b.level or nil
-end
-
-function Pandoc(doc)
-  local out, box, boxLevel = {}, nil, nil
-  for _, b in ipairs(doc.blocks) do
-    local level = heading_level(b)
-    if box and ((level and level <= boxLevel) or b.t == "HorizontalRule") then
-      table.insert(out, pandoc.Div(box, {class = "exercise"}))
-      box = nil
-    end
-    if not box and level and level <= 3 and pandoc.utils.stringify(b):match("^Exercise") then
-      box, boxLevel = {b}, level
-    elseif box then
-      table.insert(box, b)
-    else
-      table.insert(out, b)
-    end
-  end
-  if box then table.insert(out, pandoc.Div(box, {class = "exercise"})) end
-  doc.blocks = out
-  return doc
-end
-
 
 -- ::: hint ... ::: is a hint folded away under "Hint".
 -- ::: {.note title="Terminology"} ... ::: is a boxed note, with its title.

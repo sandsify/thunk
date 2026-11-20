@@ -9,7 +9,7 @@ uses the current text of the boxes above it.
 
 ## A data type
 
-```{.haskell .run}
+```haskell {.run}
 data Shape = Circle Double | Rectangle Double Double
   deriving Show
 
@@ -26,7 +26,7 @@ area (Rectangle w h) = w * h
 This box uses `Shape` and `area` from the box above. GHCi input can span
 several lines: indented lines continue the line before.
 
-```{.haskell .run}
+```haskell {.run}
 import Data.List (sortOn)
 
 shapes :: [Shape]
@@ -39,19 +39,21 @@ shapes = [Rectangle 1 1, Circle 2, Rectangle 3 2]
 >>> :t sortOn
 ```
 
+::: exercise
+
 ## Exercise: perimeter
 
 Define `perimeter`. The tests compare it with the formulas `2πr` and
 `2(w + h)`.
 
-```{.haskell .exercise}
+```haskell {.exercise}
 perimeter :: Shape -> Double
 perimeter s = undefined
 
 >>> perimeter (Circle 1)
 ```
 
-```{.haskell .check}
+```haskell {.check}
 import Test.QuickCheck
 
 -- Doubles are compared approximately: a correct answer computed in a
@@ -68,13 +70,14 @@ prop_rectangle w h = perimeter (Rectangle w h) ~= (2 * (w + h))
 >>> quickCheck prop_circle
 >>> quickCheck prop_rectangle
 ```
+:::
 
 ## When things go wrong
 
 Infinite output and endless loops are stopped after a few seconds; the
 results before them are kept.
 
-```{.haskell .run}
+```haskell {.run}
 >>> take 5 [1 ..]
 >>> length [1 ..]
 >>> "not reached"
@@ -82,7 +85,7 @@ results before them are kept.
 
 Input and output work as in GHCi:
 
-```{.haskell .run}
+```haskell {.run}
 greet :: String -> IO ()
 greet name = putStrLn ("Hello, " ++ name ++ "!")
 

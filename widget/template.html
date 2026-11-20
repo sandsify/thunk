@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en"$if(theme)$ data-theme="$theme$"$endif$>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,15 +7,16 @@
 $if(hint)$<meta name="hs-hint" content="$hint$">
 $endif$$if(hint-by)$<meta name="hs-hint-by" content="$hint-by$">
 $endif$$if(events)$<meta name="hs-events" content="$events$">
+$endif$$if(storage-prefix)$<meta name="hs-storage" content="$storage-prefix$">
 $endif$
 $if(notebook)$<meta name="hs-notebook" content="true">
 $endif$
-$if(layout)$<meta name="hs-layout" content="$layout$">
-$endif$
 <title>$pagetitle$</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
-<link rel="stylesheet" href="$widget$notes.css?v=$version$">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+<link rel="stylesheet" href="$widget$thunk.css?v=$version$">
+<link rel="stylesheet" href="$widget$page.css?v=$version$">
+$for(css)$<link rel="stylesheet" href="$css$">
+$endfor$<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/haskell/haskell.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/display/placeholder.min.js"></script>
 $if(qr)$<script src="$widget$qrcode.js?v=$version$"></script>
@@ -28,7 +29,7 @@ $endif$
 $if(abstract)$$if(qr)$<div class="abstract">
 $abstract$
 </div>
-$else$<details class="abstract"><summary>About this lecture</summary>
+$else$<details class="abstract"><summary>$if(abstract-title)$$abstract-title$$else$About this page$endif$</summary>
 $abstract$
 </details>
 $endif$$endif$
