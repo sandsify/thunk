@@ -5,6 +5,11 @@ edit and run: examples with a GHCi-like panel, exercises checked with
 QuickCheck, hints, and optional AI help. The code runs on a server
 (play-haskell with a GHCi mode), so the page itself is plain HTML.
 
+![A demo page: Run an example, a wrong answer fails Check, an AI hint, the fix passes](docs/demo.gif)
+
+*(The wait for the hint is shortened in the recording; on a free model
+tier it can take half a minute.)*
+
 Written for the Haskell course TDA452/DIT143 at Chalmers, where it
 serves interactive versions of the lectures.
 
@@ -47,7 +52,7 @@ The reader gets an editor with Run and Check. The full format is in
   page's examples and checks every exercise's solution
   (`PAGE_DIRS="my/pages" node tests/visual.mjs` for your own pages).
 - `tools/convert-names.py`: brings pages written with older names up to
-  date.
+  date; `tools/record-demo.mjs` records `docs/demo.gif`.
 
 ## Running locally
 
