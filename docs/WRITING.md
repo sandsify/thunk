@@ -243,3 +243,30 @@ per block, served from `BASE_URL`), for systems such as Canvas that
 accept iframes but not scripts. Block pages are light unless the page
 sets `theme`. A `css:` stylesheet must then be given as an absolute
 address, since the block pages are one folder down.
+
+## 9. A page without a server (replay mode)
+
+A page can also be published with its results recorded, for a demo
+that should not put load on a server, or as a fallback:
+
+```bash
+node tools/record-replay.mjs page.md          # writes page.replay.json
+THUNK_REPLAY=page.replay.json widget/build.sh page.md out/
+```
+
+The recorder opens the page against a running Thunk and presses what a
+reader starts with: Run on every block, Check on every exercise, Check
+and Run with each solution, and the page's own `.attempt` and `.expect`
+tests (section 7). It keeps Thunk's answer for each program sent. In the
+built page, those programs get the recorded answers; any other program,
+that is, code the reader has changed, gets a note that it needs a
+server. So a suggestion in the text ("add the input
+`total [True, False]`") works without a server if the page also has it
+as an `.attempt`. The reader has to make exactly that change.
+
+With a server address as well
+(`THUNK_REPLAY=... widget/build.sh page.md out/ https://thunk.example.org`),
+the recorded programs still come from the recording, and only changed
+code goes to the server. Record again after changing the page's code:
+a program that is not in the recording needs a server. The Hint button
+needs the hint service, so a page without a server has none.

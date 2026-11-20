@@ -15,6 +15,12 @@
 //                blocks before it on the page
 //   hs-storage   the prefix of the keys under which the browser keeps a
 //                reader's edits (default "thunk")
+//   hs-replay    a recording (tools/record-replay.mjs): Thunk's answer for
+//                each program that the page's own code sends, made once
+//                against a real server. Those answers come from the
+//                recording; any other program goes to hs-thunk, or, if
+//                the page has none, gets a note that it needs a server.
+//                For a demo page that should not load a server.
 //
 // Each block: definitions on top, GHCi input in a green panel below, with
 // each result under its input.
@@ -28,7 +34,7 @@
   const SEP = "\x1e\n"; // Thunk prints this after each GHCi input
   const GHC = "9.8.4";
   const meta = (name) => (document.querySelector(`meta[name="${name}"]`) || {}).content;
-  const thunkUrl = () => meta("hs-thunk") || "http://localhost:8123";
+  const thunkUrl = () => meta("hs-thunk") || (meta("hs-replay") ? "" : "http://localhost:8123");
   const hintUrl = () => meta("hs-hint") || "";
   const eventsUrl = () => meta("hs-events") || "";
 
@@ -266,9 +272,27 @@
     }));
   }
 
+  // The recording (hs-replay), fetched once: { results: { program: answer } }.
+  let recording = null;
+  function recorded(code) {
+    if (!meta("hs-replay")) return Promise.resolve(undefined);
+    recording = recording || fetch(new URL(meta("hs-replay"), document.baseURI))
+      .then((r) => (r.ok ? r.json() : { results: {} }))
+      .catch(() => ({ results: {} }));
+    return recording.then((rec) => (rec.results || {})[code]);
+  }
+  const NEEDS_SERVER = "This copy of the page shows recorded results and has no Haskell "
+    + "server, so changed code cannot run here.";
+
   // When Thunk is busy (503) or rate-limits us (429), try again a few
   // times with growing pauses; onRetry is called before each pause.
   async function submit(code, onRetry) {
+    const answer = await recorded(code);
+    if (answer) {
+      await new Promise((r) => setTimeout(r, 300)); // so that "Running…" shows
+      return answer;
+    }
+    if (!thunkUrl()) return { note: NEEDS_SERVER };
     const pauses = [1000, 2000, 3000, 5000, 8000];
     for (let attempt = 0; ; attempt++) {
       // A job takes at most a few seconds once it starts; without an
@@ -293,7 +317,10 @@
       if (res.status === 503 || res.status === 429)
         return { err: "The Haskell server is busy. Please try again in a minute." };
       if (!res.ok) return { err: "The Haskell server answered " + res.status + "." };
-      return res.json();
+      const answer = await res.json();
+      // tools/record-replay.mjs listens here
+      if (window.thunkRecorder) window.thunkRecorder(code, answer);
+      return answer;
     }
   }
 
@@ -312,6 +339,7 @@
     const retrying = () => out.replaceChildren(el("div", "hs-status", "Many people are running code right now; trying again…"));
     try { r = await submit(program(segments), retrying); }
     catch (e) { showError(out, "Could not reach the Haskell server at " + thunkUrl() + "."); return null; }
+    if (r.note) { out.replaceChildren(el("div", "hs-status", r.note)); return null; }
     if (r.err === "timeout") { showError(out, "Stopped: took more than 5 seconds."); return null; }
     if (r.err) { showError(out, r.err); return null; }
     const ghcout = fixExcerpts((r.ghcout || "").trim(), sources);

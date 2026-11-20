@@ -52,7 +52,8 @@ The reader gets an editor with Run and Check. The full format is in
   page's examples and checks every exercise's solution
   (`PAGE_DIRS="my/pages" node tests/visual.mjs` for your own pages).
 - `tools/convert-names.py`: brings pages written with older names up to
-  date; `tools/record-demo.mjs` records `docs/demo.gif`.
+  date; `tools/record-demo.mjs` records `docs/demo.gif`;
+  `tools/record-replay.mjs` records a page's results for replay mode.
 
 ## Running locally
 
@@ -64,7 +65,13 @@ git submodule update --init
 widget/build.sh demo/demo.md _site
 (cd _site && python3 -m http.server 8000 --bind 127.0.0.1)
 node tests/visual.mjs                      # must end "all checks passed"
+node tests/replay.mjs                      # the demo with no server
 ```
+
+A page can also be published with its results recorded and no server
+(replay mode: readers can run the page's own code, and changed code
+says it needs a server); see section 9 of
+[docs/WRITING.md](docs/WRITING.md).
 
 ## Related tools
 

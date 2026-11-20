@@ -1,0 +1,54 @@
+{
+ "recorded": "2026-11-20",
+ "results": {
+  "\n{-# LINE 1 \"Main.hs\" #-}\ntotal :: [Integer] -> Integer\ntotal []       = 0\ntotal (x : xs) = x + total xs\n\n>>> total [1, 2, 3, 4]\n>>> total []\n>>> :t total\n>>> total [True, False]": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "10\n\u001e\n0\n\u001e\ntotal :: [Integer] -> Integer\n\u001e\n\n<interactive>:9:8: error: [GHC-83865]\n    • Couldn't match expected type ‘Integer’ with actual type ‘Bool’\n    • In the expression: True\n      In the first argument of ‘total’, namely ‘[True, False]’\n      In the expression: total [True, False]\n\n<interactive>:9:14: error: [GHC-83865]\n    • Couldn't match expected type ‘Integer’ with actual type ‘Bool’\n    • In the expression: False\n      In the first argument of ‘total’, namely ‘[True, False]’\n      In the expression: total [True, False]\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.237400458
+  },
+  "import Test.QuickCheck\n{-# LINE 1 \"Main.hs\" #-}\ncount :: Eq a => a -> [a] -> Int\ncount x xs = length xs\n\n\n{-# LINE 1 \"tests\" #-}\n\n\nprop_count :: Int -> [Int] -> Bool\nprop_count x xs = count x xs == length (filter (== x) xs)\n\n>>> quickCheck prop_count": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "*** Failed! Falsified (after 5 tests and 6 shrinks):\n0\n[1]\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.246152251
+  },
+  "\n{-# LINE 1 \"Main.hs\" #-}\ntotal :: [Integer] -> Integer\ntotal []       = 0\ntotal (x : xs) = x + total xs\n\n>>> total [1, 2, 3, 4]\n>>> total []\n>>> :t total": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "10\n\u001e\n0\n\u001e\ntotal :: [Integer] -> Integer\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.241240875
+  },
+  "\n{-# LINE 1 \"Main.hs\" #-}\ncount :: Eq a => a -> [a] -> Int\ncount x xs = undefined\n\n>>> count 'a' \"banana\"": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "*** Exception: Prelude.undefined\nCallStack (from HasCallStack):\n  undefined, called at Main.hs:2:14 in main:Main\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.208094
+  },
+  "import Test.QuickCheck\n{-# LINE 1 \"Main.hs\" #-}\ncount :: Eq a => a -> [a] -> Int\ncount x xs = undefined\n\n\n{-# LINE 1 \"tests\" #-}\n\n\nprop_count :: Int -> [Int] -> Bool\nprop_count x xs = count x xs == length (filter (== x) xs)\n\n>>> quickCheck prop_count": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "*** Failed! (after 1 test):\nException:\n  Prelude.undefined\n  CallStack (from HasCallStack):\n    undefined, called at Main.hs:2:14 in main:Main\n0\n[]\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.247723583
+  },
+  "import Test.QuickCheck\n{-# LINE 1 \"Main.hs\" #-}\ncount :: Eq a => a -> [a] -> Int\ncount x xs = length (filter (== x) xs)\n{-# LINE 1 \"tests\" #-}\n\n\nprop_count :: Int -> [Int] -> Bool\nprop_count x xs = count x xs == length (filter (== x) xs)\n\n>>> quickCheck prop_count": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "+++ OK, passed 100 tests.\n\u001e\n",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.235747542
+  },
+  "\n{-# LINE 1 \"Main.hs\" #-}\ncount :: Eq a => a -> [a] -> Int\ncount x xs = length (filter (== x) xs)": {
+   "ec": 0,
+   "ghcout": "",
+   "sout": "",
+   "serr": "/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory\n/tmp/stage-3.sh: line 29: cannot redirect standard input from /dev/null: No such file or directory\n",
+   "timesecs": 0.238585459
+  }
+ }
+}

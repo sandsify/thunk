@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="hs-thunk" content="$thunk$">
-$if(hint)$<meta name="hs-hint" content="$hint$">
+$if(thunk)$<meta name="hs-thunk" content="$thunk$">
+$endif$$if(replay)$<meta name="hs-replay" content="$replay$">
+$endif$$if(hint)$<meta name="hs-hint" content="$hint$">
 $endif$$if(hint-by)$<meta name="hs-hint-by" content="$hint-by$">
 $endif$$if(events)$<meta name="hs-events" content="$events$">
 $endif$$if(storage-prefix)$<meta name="hs-storage" content="$storage-prefix$">

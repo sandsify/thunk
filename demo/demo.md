@@ -24,6 +24,28 @@ total (x : xs) = x + total xs
 What happens if you call it with a list of `Bool`s? Add the input
 `total [True, False]` and run it again.
 
+```haskell {.attempt}
+total :: [Integer] -> Integer
+total []       = 0
+total (x : xs) = x + total xs
+
+>>> total [1, 2, 3, 4]
+>>> total []
+>>> :t total
+>>> total [True, False]
+```
+
+```expect
+[...]>>> total [1, 2, 3, 4]
+10
+>>> total []
+0
+>>> :t total
+total :: [Integer] -> Integer
+>>> total [True, False]
+[...]Couldn't match expected type[...]
+```
+
 ::: exercise
 
 ## Exercise
@@ -53,6 +75,19 @@ prop_count x xs = count x xs == length (filter (== x) xs)
 ```haskell {.solution}
 count :: Eq a => a -> [a] -> Int
 count x xs = length (filter (== x) xs)
+```
+
+```haskell {.attempt}
+count :: Eq a => a -> [a] -> Int
+count x xs = length xs
+
+>>> count 'a' "banana"
+```
+
+```expect {action=check}
+Not yet: a test failed.
+*** Failed! Falsified (after [...]):
+[...]
 ```
 
 A static code block, for comparison (not runnable):
