@@ -1,0 +1,15 @@
+services:
+  play-haskell:
+    build: .
+    privileged: true
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - builders:/opt/play-haskell/play-haskell-worker/bwrap-files/builders
+      - builderprojs:/opt/play-haskell/play-haskell-worker/bwrap-files/builderprojs
+      - state:/var/lib/play-haskell
+
+volumes:
+  builders:
+  builderprojs:
+  state:

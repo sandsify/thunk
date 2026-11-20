@@ -1,0 +1,58 @@
+# The public entrance: https, then only what the pages need.
+#   POST/OPTIONS /submit  -> Thunk (runs code)
+#   POST/OPTIONS /hint    -> the hint service
+#   POST/OPTIONS /event   -> the hint service's usage counter
+# Everything else (Thunk's playground, saved snippets, admin) is 404.
+# Settings come from .env (see README.md).
+{
+	order rate_limit before respond
+}
+
+{$SITE} {
+	encode gzip
+
+	# Only the course pages may use the service: browsers send Origin, so
+	# this stops other web pages (not scripts). Preflights go through, and
+	# the services answer them.
+	@foreign {
+		not method OPTIONS
+		not header Origin {$PAGES_ORIGIN}
+	}
+
+	handle /submit {
+		respond @foreign "Only for the course pages." 403
+		# Per IP address. Generous, because a campus network may put many
+		# readers behind one address; Thunk's queue protects its capacity.
+		rate_limit {
+			zone submit {
+				key {remote_host}
+				events {$SUBMIT_PER_MINUTE}
+				window 1m
+			}
+		}
+		reverse_proxy thunk:8123
+	}
+	handle /hint {
+		respond @foreign "Only for the course pages." 403
+		reverse_proxy hints:8124
+	}
+	handle /event {
+		respond @foreign "Only for the course pages." 403
+		reverse_proxy hints:8124
+	}
+	handle {
+		respond 404
+	}
+
+	log {
+		output stdout
+		format filter {
+			wrap console
+			fields {
+				request>remote_ip delete
+				request>client_ip delete
+				request>headers delete
+			}
+		}
+	}
+}

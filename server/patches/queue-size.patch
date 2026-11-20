@@ -1,0 +1,13 @@
+diff --git a/play-haskell-server/src/Play.hs b/play-haskell-server/src/Play.hs
+index 83038b1..08a2188 100644
+--- a/play-haskell-server/src/Play.hs
++++ b/play-haskell-server/src/Play.hs
+@@ -396,7 +396,7 @@ playModule = do
+   return $ ServerModule
+     { smMakeContext = \gctx _options k -> do
+         -- TODO: the max queue length is a completely arbitrary value
+-        pool <- WP.newPool (gcServerSecretKey gctx) 10
++        pool <- WP.newPool (gcServerSecretKey gctx) 200
+         challenge <- makeRefreshingChallenge (secondsToDiffTime (24 * 3600))
+         rng <- newStdGen >>= newTVarIO
+ 

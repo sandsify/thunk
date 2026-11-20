@@ -1,0 +1,9 @@
+.DS_Store
+dist-newstyle/
+node_modules/
+_site/
+_shots/
+.venv/
+__pycache__/
+_publish/
+_canvas/

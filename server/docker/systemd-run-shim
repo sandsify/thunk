@@ -1,0 +1,21 @@
+#!/bin/bash
+# Docker replacement for play-haskell's systemd-run-shim:
+#   systemd-run-shim UNIT_NAME COMMAND [ARG ...]
+# Runs COMMAND in its own cgroup with the same limits as upstream
+# (CPUQuota=100%, MemoryMax=600M, TasksMax=50) and waits for it.
+set -u
+cg=/sys/fs/cgroup/sandbox/$1
+shift
+mkdir "$cg"
+echo "100000 100000" >"$cg/cpu.max"
+echo 600M >"$cg/memory.max"
+echo 0 >"$cg/memory.swap.max" 2>/dev/null
+echo 50 >"$cg/pids.max"
+ulimit -c 0
+# A background job gets /dev/null as stdin unless it is redirected.
+( echo "$BASHPID" >"$cg/cgroup.procs" && exec "$@" ) <&0 &
+wait $!
+status=$?
+echo 1 >"$cg/cgroup.kill"
+until rmdir "$cg" 2>/dev/null; do sleep 0.01; done
+exit "$status"

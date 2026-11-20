@@ -1,0 +1,3 @@
+[submodule "server/play-haskell"]
+	path = server/play-haskell
+	url = https://github.com/tomsmeding/play-haskell.git

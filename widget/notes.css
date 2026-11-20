@@ -1,0 +1,194 @@
+:root {
+  --bg: #fdfdfc;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --line: #d8dee4;
+  --code-bg: #f6f8fa;
+  --accent: #5e4fa2;
+  --pass-bg: #e9f7ef;
+  --pass-line: #2e7d4f;
+  --fail-bg: #fdf0ee;
+  --fail-line: #b3402e;
+  --error: #b3402e;
+  --repl-bg: #edf6ee;
+  --repl-line: #9ccaa6;
+  --ex-bg: #fdf3f8;
+  --ex-line: #efc3d9;
+  --hint-bg: #eef5fd;
+  --hint-line: #6f9fd6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.hs-embed) {
+    --bg: #16181d;
+    --fg: #e6e6e6;
+    --muted: #9aa3ad;
+    --line: #353a42;
+    --code-bg: #1e2128;
+    --accent: #b3a6f2;
+    --pass-bg: #15291e;
+    --pass-line: #5cc48a;
+    --fail-bg: #2e1916;
+    --fail-line: #f08a77;
+    --error: #f08a77;
+    --repl-bg: #18241b;
+    --repl-line: #3f6b4b;
+    --ex-bg: #26191f;
+    --ex-line: #6b3c54;
+    --hint-bg: #172230;
+    --hint-line: #4f7fb3;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+h1, h2, h3 { line-height: 1.25; }
+/* A block page in an iframe (widget/build-canvas.sh): only the block, in
+   light colours to match the page around it. */
+.hs-embed body { max-width: none; margin: 0; padding: 1px; background: transparent; }
+.hs-embed .hs-block { margin: 0; }
+a { color: var(--accent); }
+code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
+.abstract { font-style: italic; }
+.toc { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 1.25rem 0.75rem; margin: 1.5rem 0 2rem; }
+.toc h2 { font-size: 1rem; margin: 0.5rem 0; color: var(--muted); }
+.toc ul { margin: 0; padding-left: 1.25rem; }
+.toc li { margin: 0.15rem 0; }
+.video { color: var(--muted); font-size: 0.9rem; margin-top: -0.5rem; }
+pre { background: var(--code-bg); padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto; }
+
+.hs-block { margin: 1.25rem 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.hs-block[data-kind="exercise"] { border-left: 4px solid var(--accent); }
+.hs-block .CodeMirror {
+  height: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--code-bg);
+  color: var(--fg);
+}
+.hs-bar { display: flex; gap: 0.5rem; padding: 0.5rem; border-top: 1px solid var(--line); }
+.hs-bar button {
+  font: inherit; font-size: 0.85rem; padding: 0.3rem 0.9rem; border-radius: 5px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer;
+}
+.hs-bar { flex-wrap: wrap; }
+.hs-bar button.hs-secondary { background: transparent; color: var(--muted); border-color: var(--line); }
+.hs-spacer { flex: 1; }
+.hs-bar button:disabled { opacity: 0.5; cursor: wait; }
+.hs-output:empty { display: none; }
+.hs-output { border-top: 1px solid var(--line); }
+.hs-output pre { margin: 0; border-radius: 0; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24em; overflow-y: auto; }
+.hs-output pre.hs-warning { color: var(--muted); border-bottom: 1px dashed var(--line); max-height: 10em; }
+/* Outdated results fade after an edit; hints stay readable (the reader is following them). */
+.hs-block.hs-stale .hs-output > :not(.hs-hint-area):not(.hs-hint-offer), .hs-block.hs-stale .hs-inline { opacity: 0.45; }
+
+/* The split layout's GHCi panel, with each result under its input. */
+.hs-repl { border-top: 1px solid var(--line); }
+.hs-msg pre.hs-warning { border-bottom: none; }
+.hs-block .hs-repl .CodeMirror { background: var(--repl-bg); }
+.hs-repl .CodeMirror-gutters { background: var(--repl-bg); border-right: none; }
+.hs-repl .hs-prompt { width: 1.6em; }
+.hs-repl .hs-prompt-mark { display: block; text-align: center; color: var(--pass-line); font-weight: bold; }
+.hs-repl .CodeMirror-placeholder { color: var(--muted); }
+.hs-repl pre.hs-inline {
+  margin: 0.15rem 0 0.4rem; padding: 0.25rem 0.6rem; border-radius: 0 4px 4px 0;
+  background: var(--bg); border-left: 3px solid var(--repl-line);
+  white-space: pre-wrap; overflow-wrap: anywhere; max-height: 16em; overflow-y: auto; font-size: 1em;
+}
+.hs-note { font-size: 0.8rem; color: var(--muted); padding: 0 0.75rem 0.4rem; }
+.hs-note[hidden] { display: none; }
+.hs-solution { border-top: 1px solid var(--line); }
+.hs-solution .CodeMirror { height: auto; }
+.hs-label { font-size: 0.75rem; color: var(--muted); padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--line); }
+.hs-status { padding: 0.5rem 1rem; color: var(--muted); font-size: 0.9rem; }
+.hs-input { color: var(--muted); }
+.hs-error { color: var(--error); }
+.hs-pass, .hs-fail { padding: 0.6rem 1rem; }
+.hs-pass { background: var(--pass-bg); border-left: 4px solid var(--pass-line); }
+.hs-fail { background: var(--fail-bg); border-left: 4px solid var(--fail-line); }
+.hs-fail pre { background: transparent; padding: 0.5rem 0 0; }
+
+/* CodeMirror theme from the variables above, for light and dark. */
+.cm-s-default .cm-keyword { color: #8250df; }
+.cm-s-default .cm-variable-2, .cm-s-default .cm-type { color: #0550ae; }
+.cm-s-default .cm-string { color: #0a3069; }
+.cm-s-default .cm-number { color: #0550ae; }
+.cm-s-default .cm-comment { color: var(--muted); font-style: italic; }
+.CodeMirror-gutters { background: var(--code-bg); border-right: 1px solid var(--line); }
+.CodeMirror-linenumber { color: var(--muted); }
+.CodeMirror-cursor { border-left-color: var(--fg); }
+@media (prefers-color-scheme: dark) {
+  .cm-s-default .cm-keyword { color: #d2a8ff; }
+  .cm-s-default .cm-variable-2, .cm-s-default .cm-type { color: #79c0ff; }
+  .cm-s-default .cm-string { color: #a5d6ff; }
+  .cm-s-default .cm-number { color: #79c0ff; }
+  .cm-s-default .cm-builtin, .cm-s-default .cm-atom, .cm-s-default .cm-variable-3,
+  .cm-s-default .cm-def, .cm-s-default .cm-meta, .cm-s-default .cm-qualifier { color: #c9b8ff; }
+  .cm-s-default .cm-operator { color: var(--fg); }
+}
+
+/* AI hints after a failed Check (hints/server.py). */
+.hs-hint-offer { padding: 0.5rem 0.75rem; }
+.hs-hint-offer button.hs-explain { font: inherit; font-size: 0.9rem; padding: 0.3em 0.9em; border: 1px solid var(--hint-line); border-radius: 4px; background: var(--hint-bg); color: var(--fg); cursor: pointer; }
+.hs-hint-offer button.hs-explain:hover { border-color: var(--accent); }
+.hs-hint { margin: 0.6rem 0.75rem; padding: 0.4rem 0.9rem 0.6rem; background: var(--hint-bg); border-left: 4px solid var(--hint-line); border-radius: 0 6px 6px 0; color: var(--fg); }
+.hs-hint > .hs-label { padding: 0 0 0.2rem; border-bottom: none; color: var(--muted); font-weight: 600; }
+.hs-hint p { margin: 0.3em 0 0; white-space: pre-wrap; }
+
+/* Exercises (filter.lua wraps each in div.exercise): a box. */
+.exercise {
+  background: var(--ex-bg);
+  border: 1px solid var(--ex-line);
+  border-radius: 8px;
+  padding: 0.2rem 1rem 0.8rem;
+  margin: 1.6rem 0;
+}
+.exercise > h2, .exercise > h3 { margin-top: 0.8rem; }
+@media (max-width: 600px) { .exercise { padding: 0.1rem 0.6rem 0.6rem; } }
+
+/* Hints are Markdown, rendered by notes.js (a small, safe subset). */
+.hs-hint .hs-hint-body p { margin: 0.4em 0 0; white-space: normal; }
+.hs-hint .hs-hint-body ul, .hs-hint .hs-hint-body ol { margin: 0.4em 0 0; padding-left: 1.4em; }
+.hs-hint .hs-hint-body code { background: var(--code-bg); padding: 0 0.25em; border-radius: 3px; font-size: 0.92em; }
+.hs-hint-consent { margin-top: 0.6em; padding: 0.5em 0.8em; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9em; }
+.hs-hint-consent p { margin: 0 0 0.5em; }
+.hs-hint-consent button, .hs-hint button { font: inherit; font-size: 0.9em; padding: 0.2em 0.8em; margin-right: 0.5em; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+.hs-hint-consent button.hs-secondary, .hs-hint button.hs-secondary { background: transparent; color: var(--muted); border-color: var(--line); }
+.hs-hint .hs-more { margin-top: 0.5em; }
+
+/* Class-meeting pages (qr: true): a QR code of the page's address. */
+.hs-qr { display: flex; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 0.75rem;
+  border: 1px solid var(--line); border-radius: 8px; }
+.hs-qr[hidden] { display: none; }
+.hs-qr-code { width: 120px; height: 120px; flex: none; cursor: zoom-in; background: #fff; border-radius: 4px; }
+.hs-qr-code svg, .hs-qr-big svg { width: 100%; height: 100%; display: block; }
+.hs-qr-side { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; min-width: 0; }
+.hs-qr-label { color: var(--muted); font-size: 0.9rem; }
+.hs-qr-url { font-weight: 600; overflow-wrap: anywhere; }
+.hs-qr-side button { font: inherit; font-size: 0.85rem; padding: 0.2em 0.8em; border-radius: 4px;
+  border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.hs-qr-overlay { position: fixed; inset: 0; z-index: 100; background: #fff; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; cursor: zoom-out; }
+.hs-qr-big { width: min(80vh, 90vw); height: min(80vh, 90vw); }
+.hs-qr-big-url { font: 600 clamp(1rem, 3vw, 2.2rem) system-ui, sans-serif; color: #000; }
+
+/* The abstract, folded: "About this lecture". */
+details.abstract { margin: 0 0 1.5rem; color: var(--muted); }
+details.abstract > summary { cursor: pointer; font-weight: 600; font-style: normal; }
+details.abstract[open] > summary { margin-bottom: 0.4rem; }
+details.hint { margin: 0.5rem 0 1rem; padding: 0.3rem 0.8rem; border-left: 3px solid var(--hint-line); background: var(--hint-bg); border-radius: 4px; }
+details.hint > summary { cursor: pointer; font-weight: 600; }
+details.hint[open] > summary { margin-bottom: 0.3rem; }
+div.note { margin: 1rem 0; padding: 0.1rem 1rem; border: 1px solid var(--hint-line); border-left-width: 4px; background: var(--hint-bg); border-radius: 4px; }
+
+/* "Hidden code" above a block: folded, one line; opens the hidden code read-only */
+details.hs-hidden-code { margin: 0 0 0.3rem; font-size: 0.85rem; color: var(--muted); }
+details.hs-hidden-code > summary { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details.hs-hidden-code[open] > summary { white-space: normal; margin-bottom: 0.3rem; }
+.hs-hidden-title { font-weight: 600; margin-right: 0.5em; }
+details.hs-hidden-code .CodeMirror { height: auto; opacity: 0.85; border-left: 3px solid var(--hint-line); }

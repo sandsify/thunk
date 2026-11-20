@@ -1,0 +1,7 @@
+#!/bin/bash
+# Docker replacement for play-haskell's systemd-kill-shim:
+#   systemd-kill-shim UNIT_NAME
+# Kills everything in the job's cgroup.
+cg=/sys/fs/cgroup/sandbox/$1
+[ -d "$cg" ] && echo 1 >"$cg/cgroup.kill"
+exit 0

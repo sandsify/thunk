@@ -1,0 +1,59 @@
+# Thunk (runs the readers' code), the hint service, and Caddy in front
+# (https, Origin check, rate limit). See README.md.
+#   cp env.example .env; edit .env; docker compose up -d --build
+name: fp-notes
+
+services:
+  thunk:
+    build: ../server
+    privileged: true          # bubblewrap sandboxes and cgroups (see ../server)
+    restart: unless-stopped
+    volumes:
+      - builders:/opt/play-haskell/play-haskell-worker/bwrap-files/builders
+      - builderprojs:/opt/play-haskell/play-haskell-worker/bwrap-files/builderprojs
+      - state:/var/lib/play-haskell
+    # no ports: only Caddy reaches it
+
+  hints:
+    build: ../hints
+    restart: unless-stopped
+    environment:
+      - GEMINI_API_KEY
+      - OPENROUTER_API_KEY
+      - HINT_PROVIDER
+      - HINT_MODEL
+      - HINT_ORIGINS=${PAGES_ORIGIN}
+      - HINT_TRUST_PROXY=1
+      - HINT_PER_MINUTE
+      - HINT_TOTAL_PER_DAY
+      - HINT_LOG=/var/log/hints/hints.jsonl
+      - EVENT_LOG=/var/log/hints/events.jsonl
+    volumes:
+      - hintlog:/var/log/hints
+
+  caddy:
+    build: caddy
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      - SITE
+      - PAGES_ORIGIN
+      - SUBMIT_PER_MINUTE=${SUBMIT_PER_MINUTE:-120}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro,Z
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [thunk, hints]
+
+volumes:
+  builders:
+    name: ${VOLUME_PREFIX:-fp-notes}_builders
+  builderprojs:
+    name: ${VOLUME_PREFIX:-fp-notes}_builderprojs
+  state:
+    name: ${VOLUME_PREFIX:-fp-notes}_state
+  hintlog:
+  caddy-data:
+  caddy-config:

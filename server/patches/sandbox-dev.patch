@@ -1,0 +1,12 @@
+diff --git a/play-haskell-worker/bwrap-files/stage-2.sh b/play-haskell-worker/bwrap-files/stage-2.sh
+index 72493df..878b078 100755
+--- a/play-haskell-worker/bwrap-files/stage-2.sh
++++ b/play-haskell-worker/bwrap-files/stage-2.sh
+@@ -42,6 +42,7 @@ args=(
+   --setenv GHCUP_INSTALL_BASE_PREFIX "$(dirname "${ghcup_base}")"
+   --setenv GHCUP_SKIP_UPDATE_CHECK ""
+   --proc /proc
++  --dev /dev
+   --chdir "/tmp"
+   --new-session
+   --unshare-all

@@ -1,0 +1,128 @@
+diff --git a/play-haskell-types/src/PlayHaskellTypes.hs b/play-haskell-types/src/PlayHaskellTypes.hs
+index 1d67147..e909544 100644
+--- a/play-haskell-types/src/PlayHaskellTypes.hs
++++ b/play-haskell-types/src/PlayHaskellTypes.hs
+@@ -44,10 +44,11 @@ import PlayHaskellTypes.Sign (PublicKey, SecretKey, Signature)
+ import qualified PlayHaskellTypes.Sign as Sign
+ 
+ 
+--- | JSON: string; "run", "core", "asm".
++-- | JSON: string; "run", "core", "asm", "ghci".
+ data Command = CRun   -- ^ Compile and execute a Haskell file
+              | CCore  -- ^ Get simplified core
+              | CAsm   -- ^ Get native assembly
++             | CGhci  -- ^ Load a Haskell file in GHCi and evaluate its @>>>@ lines
+   deriving (Show)
+ 
+ -- | JSON: string; \"O0", \"O1", \"O2".
+@@ -129,14 +130,15 @@ instance Ord Version where
+ instance J.FromJSON Command where
+   parseJSON (J.String s) = case T.unpack s of
+     "run" -> return CRun ; "core" -> return CCore ; "asm" -> return CAsm ;
++    "ghci" -> return CGhci ;
+     _ -> fail "Invalid Command string"
+   parseJSON val = J.prependFailure "parsing Command failed, " (J.typeMismatch "String" val)
+ 
+ instance J.ToJSON Command where
+   toJSON cmd = J.String $ T.pack $ case cmd of
+-    CRun -> "run" ; CCore -> "core" ; CAsm -> "asm"
++    CRun -> "run" ; CCore -> "core" ; CAsm -> "asm" ; CGhci -> "ghci"
+   toEncoding cmd = case cmd of
+-    CRun -> JE.string "run" ; CCore -> JE.string "core" ; CAsm -> JE.string "asm"
++    CRun -> JE.string "run" ; CCore -> JE.string "core" ; CAsm -> JE.string "asm" ; CGhci -> JE.string "ghci"
+ 
+ instance J.FromJSON Optimisation where
+   parseJSON (J.String s) = case T.unpack s of
+@@ -292,6 +294,7 @@ instance SigningBytes Command where
+   signingBytesB CRun = BSB.word8 0
+   signingBytesB CCore = BSB.word8 1
+   signingBytesB CAsm = BSB.word8 2
++  signingBytesB CGhci = BSB.word8 3
+ 
+ instance SigningBytes Optimisation where
+   signingBytesB O0 = BSB.word8 0
+diff --git a/play-haskell-worker/bwrap-files/stage-3.sh b/play-haskell-worker/bwrap-files/stage-3.sh
+index 7c8064d..bba521d 100755
+--- a/play-haskell-worker/bwrap-files/stage-3.sh
++++ b/play-haskell-worker/bwrap-files/stage-3.sh
+@@ -36,6 +36,68 @@ case "$command" in
+       echo >&2 "Compilation succeeded, but no executable was produced. Perhaps your module is not called 'Main'?"
+     fi
+     ;;
++  ghci)
++    # The code is a module plus GHCi input: a line starting with ">>>" is
++    # an input, and following lines starting with "..." continue it (as do
++    # ">>>" lines between ">>> :{" and ">>> :}"). Lines starting with
++    # "<<<" after an input are given to the program as its standard input
++    # (for getLine): they go into GHCi's input right after the input. The
++    # input lines are blanked in Main.hs to keep the line numbers. After
++    # each input a line with only \x1e (record separator) is printed, so
++    # that the client can split the output per input.
++    cat >input.txt
++    gawk -v main=Main.hs -v script=script.ghci '
++      function flush(  i) {
++        if (n == 0) return
++        if (n == 1) print buf[1] > script
++        else {
++          print ":{" > script
++          for (i = 1; i <= n; i++) print buf[i] > script
++          print ":}" > script
++        }
++        for (i = 1; i <= m; i++) print stdin[i] > script
++        print "System.IO.putStrLn \"\\RS\"" > script
++        n = 0; m = 0
++      }
++      /^>>>/ {
++        s = $0; sub(/^>>> ?/, "", s); print "" > main
++        if (inblock) { if (s == ":}") { inblock = 0; flush() } else buf[++n] = s; next }
++        flush()
++        if (s == ":{") inblock = 1; else buf[++n] = s
++        next
++      }
++      n > 0 && /^\.\.\./ { s = $0; sub(/^\.\.\. ?/, "", s); buf[++n] = s; print "" > main; next }
++      n > 0 && !inblock && /^<<</ { s = $0; sub(/^<<< ?/, "", s); stdin[++m] = s; print "" > main; next }
++      { if (!inblock) flush(); print > main }
++      END { flush(); close(main); close(script) }
++    ' input.txt
++    touch Main.hs script.ghci
++    printf ':set prompt ""\n:set prompt-cont ""\n' >settings.ghci
++    # "-main-is NoSuchModule": like GHCi, do not require a main.
++    /builders/build-"${version}".sh -fno-code -main-is NoSuchModule Main.hs >/tmp/null 2>&"$ghc_out_fd" || exit 1
++    # GHCi loads the module itself, so that the warnings (already in the
++    # GHC output above) can be dropped: everything up to the first \x1e.
++    { printf ':load Main.hs\nSystem.IO.putStrLn "\\RS"\n'; cat script.ghci; } >all.ghci
++    # Stop GHCi before the worker's own time limit, so that the output of
++    # the inputs before a slow one is kept. GHCi runs in its own session
++    # so that the whole process group can be killed (it runs as
++    # sh -> ghcup -> ghc, and timeout(1) would only kill the sh).
++    set +e
++    {
++      setsid /builders/build-"${version}".sh --interactive -v0 -ignore-dot-ghci \
++        -ghci-script settings.ghci -w -main-is NoSuchModule <all.ghci 2>&1 &
++      ghci=$!
++      { sleep 3.5; kill -KILL -- -"$ghci"; } >/tmp/null 2>&1 &
++      watchdog=$!
++      wait "$ghci"
++      status=$?
++      kill "$watchdog" 2>/tmp/null
++      if [[ $status -eq 137 ]]; then
++        printf '\n*** Stopped: took more than 3.5 seconds.\n'
++      fi
++    } | gawk 'started { print; fflush(); next } /^\x1e$/ { started = 1 }'
++    set -e
++    ;;
+   core)
+     cat >input.hs
+     /builders/build-"${version}".sh -ddump-simpl -ddump-to-file "${opt}" input.hs >/tmp/null 2>&"$ghc_out_fd"
+diff --git a/play-haskell-worker/src/GHCPool.hs b/play-haskell-worker/src/GHCPool.hs
+index 3cff901..ca76001 100644
+--- a/play-haskell-worker/src/GHCPool.hs
++++ b/play-haskell-worker/src/GHCPool.hs
+@@ -71,6 +71,7 @@ commandString :: Command -> String
+ commandString CRun = "run"
+ commandString CCore = "core"
+ commandString CAsm = "asm"
++commandString CGhci = "ghci"
+ 
+ optimisationString :: Optimisation -> String
+ optimisationString O0 = "-O0"

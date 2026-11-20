@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" class="hs-embed">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="hs-thunk" content="$thunk$">
+$if(hint)$<meta name="hs-hint" content="$hint$">
+$endif$$if(hint-by)$<meta name="hs-hint-by" content="$hint-by$">
+$endif$$if(events)$<meta name="hs-events" content="$events$">
+$endif$
+$if(notebook)$<meta name="hs-notebook" content="true">
+$endif$
+$if(layout)$<meta name="hs-layout" content="$layout$">
+$endif$
+<title>Haskell block</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.css">
+<link rel="stylesheet" href="$widget$notes.css?v=$version$">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/haskell/haskell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/display/placeholder.min.js"></script>
+<script src="$widget$notes.js?v=$version$"></script>
+</head>
+<body>
+
+$body$
+</body>
+</html>

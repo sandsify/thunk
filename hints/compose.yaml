@@ -1,0 +1,13 @@
+# Locally: GEMINI_API_KEY=$(security find-generic-password -s gemini-fp-notes -w) docker compose up -d
+services:
+  hints:
+    build: .
+    ports:
+      - "127.0.0.1:8124:8124"
+    environment:
+      - GEMINI_API_KEY
+      - HINT_PROVIDER=${HINT_PROVIDER:-gemini}
+      - HINT_MODEL=${HINT_MODEL:-}
+      - HINT_ORIGINS=${HINT_ORIGINS:-http://localhost:8000}
+      - HINT_TRUST_PROXY=${HINT_TRUST_PROXY:-0}
+    restart: unless-stopped
