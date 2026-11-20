@@ -2,14 +2,14 @@
 title: "Demo: functions on lists"
 ---
 
-Every code box on this page can be edited and run. Lines starting with
-`>>>` are evaluated as in GHCi; everything else is ordinary Haskell
-definitions. You do not need a `main`.
+Every code box on this page can be edited and run. The upper part of a
+box holds ordinary Haskell definitions; the lower part is GHCi, where
+each line marked `>` is an input. You do not need a `main`.
 
 ## An example
 
 Here is a recursive function that sums a list. Try changing the inputs,
-or add your own `>>>` lines. `>>> :t` shows the type of an expression.
+or add your own on a new line. `:t` shows the type of an expression.
 
 ```haskell {.run}
 total :: [Integer] -> Integer
@@ -21,8 +21,8 @@ total (x : xs) = x + total xs
 >>> :t total
 ```
 
-What happens if you call it with a list of `Bool`s? Add the line
-`>>> total [True, False]` and run it again.
+What happens if you call it with a list of `Bool`s? Add the input
+`total [True, False]` and run it again.
 
 ::: exercise
 
