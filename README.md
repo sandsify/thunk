@@ -13,8 +13,10 @@ tier it can take half a minute.)*
 Written for the Haskell course TDA452/DIT143 at Chalmers, where it
 serves interactive versions of the lectures.
 
-*Work in progress, not yet released. The design decisions are in
-[docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md).*
+**[Try the demo page](https://sandsify.github.io/thunk/demo.html).** It
+runs without a server: its own code shows recorded results, so changed
+code only gets a note. The design decisions are in
+[docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md).
 
 ## Writing pages
 

@@ -1,0 +1,41 @@
+# The demo page on GitHub Pages, in replay mode (no server): the page's own
+# code shows recorded results (demo/demo.replay.json); changed code gets a
+# note that it needs a server.
+name: Demo page
+on:
+  push:
+    branches: [main]
+    paths: [demo/**, widget/**, .github/workflows/pages.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pandoc
+        run: |
+          curl -fsSL -o pandoc.deb https://github.com/jgm/pandoc/releases/download/3.11/pandoc-3.11-1-amd64.deb
+          sudo dpkg -i pandoc.deb
+      - name: Build the demo
+        run: |
+          THUNK_REPLAY=demo/demo.replay.json widget/build.sh demo/demo.md _pages
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=demo.html"><a href="demo.html">Thunk demo</a>\n' > _pages/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _pages
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
