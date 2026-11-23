@@ -19,7 +19,7 @@ Applied in the Dockerfile, in name order, to the pinned submodule.
 To change a patch: apply it in the submodule, edit, then
 `git diff > ../patches/NAME.patch` and `git checkout .` in the submodule.
 
-Details of the ghci mode:
+Details of the ghci mode (the protocol, for any engine: docs/PROTOCOL.md):
 
 - Lines starting with `...` continue the `>>>` line before; `>>> :{` to
   `>>> :}` is one input as well.
